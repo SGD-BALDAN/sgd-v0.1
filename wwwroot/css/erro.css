@@ -1,0 +1,7 @@
+.erro { min-height: 100vh; display: grid; place-items: center; padding: 1.5rem; }
+.erro__card { max-width: 480px; text-align: center; display: grid; gap: .75rem; }
+.erro__codigo { font: 800 4.5rem/1 var(--font-body, Inter, sans-serif); color: var(--red, #e0101e); }
+.erro__card h1 { margin: 0; }
+.erro__card p { margin: 0; color: var(--muted, #8da0b8); }
+.erro__card small { color: var(--muted, #8da0b8); word-break: break-all; }
+.erro__voltar { justify-self: center; margin-top: .5rem; padding: .7rem 1.4rem; border-radius: 10px; background: var(--red, #e0101e); color: #fff; text-decoration: none; font-weight: 600; }

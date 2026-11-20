@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using SgdBaldan.Models;
+using SgdBaldan.ViewModels;
 
 namespace SgdBaldan.Controllers
 {

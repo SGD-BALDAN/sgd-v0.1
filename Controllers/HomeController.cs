@@ -1,32 +1,16 @@
-using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using SgdBaldan.Infrastructure;
 using SgdBaldan.ViewModels;
 
-namespace SgdBaldan.Controllers
+namespace SgdBaldan.Controllers;
+
+public class HomeController : Controller
 {
-    public class HomeController : Controller
-    {
-        private readonly ILogger<HomeController> _logger;
+    private readonly LaudosOptions _laudos;
 
-        public HomeController(ILogger<HomeController> logger)
-        {
-            _logger = logger;
-        }
+    public HomeController(IOptions<LaudosOptions> laudos) => _laudos = laudos.Value;
 
-        public IActionResult Index()
-        {
-            return View();
-        }
-
-        public IActionResult Privacy()
-        {
-            return View();
-        }
-
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-        }
-    }
+    [HttpGet("inicio")]
+    public IActionResult Index() => View(new InicioViewModel { LimiteFila = _laudos.LimiteFila });
 }

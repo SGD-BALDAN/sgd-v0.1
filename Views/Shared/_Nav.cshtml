@@ -1,0 +1,22 @@
+@{
+    var ativo = ViewData["Nav"] as string;
+    var admin = User.IsInRole(Papeis.Programador);
+    var itens = new List<(string Id, string Titulo, string Icone, string? Url)>
+    {
+        admin ? ("aprovacoes", "Aprovações", "file", "~/aprovacoes") : ("inicio", "Início", "home", "~/inicio"),
+        ("dispositivos", "Dispositivos", "grid", "~/dispositivos"),
+        ("historico", "Histórico", "history", null),
+        ("relatorios", "Relatórios", "chart", null),
+        ("config", "Configurações", "gear", null)
+    };
+    if (admin) { itens.Insert(1, ("catalogo", "Catálogo", "grid", "~/catalogo")); }
+}
+<nav>
+  @foreach (var item in itens)
+  {
+      var classe = item.Id == ativo ? "nav on" : "nav";
+      var href = item.Url is null ? "#" : Url.Content(item.Url);
+      <a class="@classe" href="@href">@Html.Icon(item.Icone)<span>@item.Titulo</span></a>
+  }
+</nav>
+<div class="logo"><span class="boxLogo"><img class="logo__mark" src="~/img/LogoBaldan.png" alt="" /> BALDAN</span><small>Ferramentaria</small></div>

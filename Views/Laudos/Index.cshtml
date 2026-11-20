@@ -1,0 +1,13 @@
+@model SgdBaldan.ViewModels.LaudosListaViewModel
+@using SgdBaldan.Models.Enums
+@{ ViewData["Title"] = "Meus laudos"; }
+<section class="container py-4">
+<h1>Meus laudos</h1>
+<div class="row g-2 mb-4">
+@foreach (var item in new[]{("Em andamento",Model.EmAndamento),("Aguardando operador",Model.AguardandoOperador),("Aguardando aprovação",Model.AguardandoAprovacao),("Reprovados",Model.Reprovados),("Aprovados",Model.Aprovados)}) { <div class="col"><div class="card p-3"><strong>@item.Item2</strong><span>@item.Item1</span></div></div> }
+</div>
+<a class="btn btn-primary mb-3" href="/laudos/novo">Novo laudo</a>
+<table class="table table-striped"><thead><tr><th>ID</th><th>Tipo</th><th>Dispositivo</th><th>OS</th><th>Modo</th><th>Status</th><th></th></tr></thead><tbody>
+@foreach(var l in Model.Laudos){<tr><td>@l.IdLaudo</td><td>@l.Tipo</td><td>@l.Dispositivo.Codigo</td><td>@l.OrdemServico</td><td>@l.Modo</td><td>@l.Status</td><td><a href="/laudos/@l.IdLaudo">Abrir</a></td></tr>}
+</tbody></table>
+</section>

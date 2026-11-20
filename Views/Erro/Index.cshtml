@@ -1,0 +1,22 @@
+@model ErroViewModel
+@{
+    Layout = "_LayoutPublico";
+    ViewData["Title"] = Model.Titulo;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/erro.css" asp-append-version="true" />
+}
+
+<main class="erro">
+  <div class="erro__card">
+    <span class="erro__codigo">@Model.Codigo</span>
+    <h1>@Model.Titulo</h1>
+    <p>@Model.Mensagem</p>
+    @if (!string.IsNullOrEmpty(Model.RequestId))
+    {
+        <small>Código de referência: @Model.RequestId</small>
+    }
+    <a class="erro__voltar" href="~/inicio">Voltar ao início</a>
+  </div>
+</main>

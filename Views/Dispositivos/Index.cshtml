@@ -1,0 +1,100 @@
+@model DispositivosIndexViewModel
+@{
+    ViewData["Title"] = "Dispositivos";
+    ViewData["Tema"] = "t-red";
+    ViewData["Nav"] = "dispositivos";
+    var tipos = new[] { TipoLaudo.Liberacao, TipoLaudo.Corretiva, TipoLaudo.Preventiva };
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/dispositivos.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/dispositivos-extra.css" asp-append-version="true" />
+}
+
+<main>
+  <div class="head">
+    <div>
+      <h1>Dispositivos</h1>
+      <p class="sub">Lista completa de dispositivos cadastrados no sistema.</p>
+    </div><span class="sp"></span>
+    <label class="search"><span data-ic="search"></span><input id="q" placeholder="Buscar por número do dispositivo, produto, categoria, laudos ou status…" aria-label="Buscar"></label>
+    <select id="fCategoria" aria-label="Filtrar por categoria">
+      <option value="">Todas as categorias</option>
+      @foreach (var c in Model.Categorias)
+      {
+          <option value="@c.Nome.ToLowerInvariant()">@c.Nome</option>
+      }
+    </select>
+    <select id="fStatus" aria-label="Filtrar por status">
+      <option value="">Todos os status</option>
+      @foreach (var s in Enum.GetValues<StatusLaudo>())
+      {
+          <option value="@s">@s.Rotulo()</option>
+      }
+      <option value="sem">Sem laudo</option>
+    </select>
+  </div>
+
+  <section class="stats">
+    <div class="stat"><span data-ic="file"></span>
+      <div><small>Total de dispositivos</small><b>@Model.Itens.Count</b></div>
+    </div>
+    @foreach (var r in Model.ResumoPorCategoria())
+    {
+        <div class="stat stat--tipo"><div><small style="color:@r.Cor">@r.Nome</small><b>@r.Quantidade</b><small>@r.Percentual%</small></div></div>
+    }
+  </section>
+
+  <div class="tw">
+    <table>
+      <thead>
+        <tr>
+          <th>Número do Dispositivo</th>
+          <th>Produto</th>
+          <th>Categoria</th>
+          <th>Laudos aprovados</th>
+          <th>Última atualização</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="rows">
+        @foreach (var d in Model.Itens)
+        {
+            var statusTexto = d.StatusMaisRecente?.Rotulo() ?? "Sem laudo";
+            var statusChave = d.StatusMaisRecente?.ToString() ?? "sem";
+            var dot = d.StatusMaisRecente?.ClasseDot() ?? "dot--sem";
+            var busca = string.Join(' ', d.Codigo, d.Produto, d.Categoria, statusTexto, "lib liberação", "cor corretiva", "pre preventiva").ToLowerInvariant();
+            <tr class="row" tabindex="0" data-codigo="@d.Codigo" data-categoria="@d.Categoria.ToLowerInvariant()" data-status="@statusChave" data-busca="@busca" data-href="@Url.Content("~/dispositivos/" + Uri.EscapeDataString(d.Codigo))">
+              <td><div class="dev"><div><b>@d.Codigo</b></div></div></td>
+              <td>@d.Produto</td>
+              <td><span class="pill" style="--pill:@d.CategoriaCor;color:@d.TextoSobre">@d.Categoria</span></td>
+              <td>
+                <div class="lbs">
+                  @foreach (var t in tipos)
+                  {
+                      var ultimo = d.Ultimo(t);
+                      var classe = "lb lb--" + t.Sigla().ToLowerInvariant() + (ultimo.HasValue ? "" : " lb--off");
+                      var href = ultimo.HasValue
+                          ? Url.Content("~/laudos/editar/" + ultimo.Value)
+                          : Url.Content("~/laudos/" + t.Slug() + "/novo") + "?codigo=" + Uri.EscapeDataString(d.Codigo);
+                      var dica = ultimo.HasValue
+                          ? d.Aprovados(t) + " laudo(s) de " + t.Rotulo() + " aprovado(s). Clique para abrir o mais recente."
+                          : "Este dispositivo não tem laudo de " + t.Rotulo() + ". Clique para criar um novo.";
+                      <a class="@classe" href="@href" title="@dica">@t.Sigla() @d.Aprovados(t)</a>
+                  }
+                </div>
+              </td>
+              <td>@(d.UltimaAtualizacao?.ToString("dd/MM/yyyy HH:mm") ?? "—")</td>
+              <td><span class="dot @dot"></span>@(statusTexto)@if (d.Status == StatusDispositivo.Pendente) { <small>Cadastro aguardando aprovação</small> }</td>
+            </tr>
+        }
+        <tr id="semResultado" hidden><td colspan="6" class="empty">Nenhum dispositivo encontrado. Ajuste a busca ou os filtros.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="sub" id="cnt"></p>
+</main>
+
+@section Scripts {
+    <script src="~/js/dispositivos.js" asp-append-version="true"></script>
+}

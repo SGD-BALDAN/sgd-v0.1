@@ -1,0 +1,123 @@
+@model LoginViewModel
+@{
+    Layout = "_LayoutPublico";
+    ViewData["Title"] = "Entrar";
+    var erro = ViewData.ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault();
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
+}
+
+<main class="login">
+
+    <!-- ===== Painel visual (esquerda) ===== -->
+    <section class="hero" aria-hidden="true">
+      <div class="hero__machine"><img src="~/img/LogoSite.png" alt=""></div>
+      <span class="hero__shape hero__shape--solid"></span>
+
+      <div class="hero__text">
+        <p class="hero__slogan">Mais controle.<br>Menos paradas.</p>
+        <span>V 0.1</span>
+        <span class="hero__bar"></span>
+      </div>
+    </section>
+
+    <!-- ===== Painel de acesso (direita) ===== -->
+    <section class="access">
+      <div class="card">
+
+        <header class="brand">
+          <img src="~/img/LogoBaldan.png" alt="" class="brand__icon">
+          <span class="brand__name">SGD</span>
+          <span class="brand__divider"></span>
+          <span class="brand__desc">Sistema de Gestão<br>de Dispositivos</span>
+        </header>
+        <h1 class="title">SGD</h1>
+        <p class="subtitle">Acesse sua conta para continuar.</p>
+
+        <form id="loginForm" class="form" asp-controller="Account" asp-action="Login" method="post" novalidate>
+          <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+
+          <div class="field">
+            <label class="field__icon" for="usuario">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.2 3.6-7 8-7s8 2.8 8 7"/></svg>
+              <span class="sr-only">RE</span>
+            </label>
+            <input id="usuario" name="Re" type="text" value="@Model.Re" maxlength="30" placeholder="RE" autocomplete="username" required>
+          </div>
+
+          <div class="field">
+            <label class="field__icon" for="senha">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/><circle cx="12" cy="16" r="1" fill="currentColor"/></svg>
+              <span class="sr-only">Senha</span>
+            </label>
+            <input id="senha" name="Senha" type="password" placeholder="Senha" autocomplete="current-password" required>
+            <button type="button" id="togglePassword" class="field__toggle" aria-label="Mostrar senha" aria-pressed="false">
+              <svg class="icon-eye" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="icon-eye-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 5.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4M6.5 6.6C3.7 8.4 2 12 2 12s3.6 7 10 7c1.5 0 2.9-.4 4.1-.9"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
+            </button>
+          </div>
+
+          <p id="formError" class="form__error" role="alert" hidden="@(string.IsNullOrEmpty(erro))">@erro</p>
+
+          <div class="options">
+            <label class="check">
+              <input type="checkbox" id="lembrar" name="Lembrar" value="true">
+              <span class="check__box"></span>
+              <span class="check__label">Lembrar acesso</span>
+            </label>
+            <a href="#" class="link">Esqueci minha senha</a>
+          </div>
+
+          <button type="submit" class="btn" id="btnEntrar">
+            <svg class="btn__arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
+            <span class="btn__sep"></span>
+            <span class="btn__text">Entrar</span>
+          </button>
+        </form>
+
+        <p class="signup-link">Ainda não tem acesso? <a class="link" href="~/cadastro">Solicitar acesso</a></p>
+        <button type="button" class="about-trigger" id="openAbout"><span aria-hidden="true">ⓘ</span> Sobre o projeto</button>
+
+        <footer class="note">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+          <span>Acesso restrito</span>
+          <i></i>
+          <span>Ambiente corporativo</span>
+        </footer>
+
+      </div>
+    </section>
+
+  </main>
+
+  <div class="about-modal" id="aboutModal" aria-hidden="true">
+    <div class="about-modal__backdrop" data-close-about></div>
+    <section class="about-dialog" role="dialog" aria-modal="true" aria-labelledby="aboutTitle" tabindex="-1">
+      <header class="about-dialog__header"><div><span class="about-eyebrow">CONHEÇA O PROJETO</span><h2 id="aboutTitle">Sobre o projeto</h2></div><button type="button" class="about-close" id="closeAbout" aria-label="Fechar">×</button></header>
+      <div class="about-dialog__content">
+        <section class="about-section"><span class="about-section__number">01</span><div><h3>Identificação</h3><dl class="about-data">
+          <div><dt>Nome do projeto</dt><dd>SGD - Sistema de Gerenciamento de Dispositivos</dd></div><div><dt>Curso</dt><dd>Desenvolvimento de Software Multiplataforma</dd></div>
+          <div><dt>Instituição</dt><dd>Fatec Matão</dd></div><div><dt>Parceria</dt><dd>Baldan</dd></div>
+        </dl></div></section>
+        <section class="about-section"><span class="about-section__number">02</span><div><h3>Contexto</h3><p>Os dispositivos da empresa precisam de laudos para registros de liberação, manutenção (preventiva) e conserto (corretiva). Porém, atualmente, o preenchimento desses laudos é realizado manualmente em papel, o que torna o processo menos prático e demorado, diminuindo a eficiência na empresa.</p></div></section>
+        <section class="about-section"><span class="about-section__number">03</span><div><h3>Objetivos</h3><ul><li>Autenticação de usuários e recuperação controlada de acesso.</li><li>Perfis e permissões iniciais: operador, responsável, gestão e administrador.</li><li>Cadastro e consulta de dispositivos.</li><li>Abertura, preenchimento, salvamento e finalização de laudos.</li><li>Laudos de liberação, manutenção corretiva e manutenção preventiva.</li><li>Controle inicial do número de laudos em andamento.</li><li>Listagem e filtros básicos por dispositivo, tipo, responsável, situação e período.</li>
+        <li>Registro de data, hora, usuário e mudança de status.</li>
+        <li>Exportação ou visualização do laudo para conferência.</li></ul></div></section>
+        <section class="about-section"><span class="about-section__number">04</span><div><h3>Equipe</h3><div class="about-people"><div><h4>Desenvolvedores</h4><p>Gabriel Melitto</p><p>Caio Bononi</p>
+        <p>Thiago Marcelino</p>
+        <p>Ryan Gonçalves</p>
+        <p>Caio Fonseca</p>
+        <p>Leandro Ferreira</p></div><div><h4>Orientador(a)</h4><p>Douglas Ribeiro</p></div></div></div></section>
+        <section class="about-section"><span class="about-section__number">05</span><div><h3>Envolvidos</h3><p class="about-section__hint">Representantes e colaboradores da empresa parceira</p><ul><li>Carolina Beil</li><li>Vinicius Urbano</li><li>Ingrid Lara</li><li>Gabriela</li>
+        <li>Rodrigo Vidrich</li>
+        </ul></div></section>
+      </div>
+      <footer class="about-dialog__footer"><span>SGD • Sistema de Gestão de Dispositivos</span><button type="button" class="about-done" data-close-about>Fechar</button></footer>
+    </section>
+  </div>
+
+@section Scripts {
+    <script src="~/js/login.js" asp-append-version="true"></script>
+}

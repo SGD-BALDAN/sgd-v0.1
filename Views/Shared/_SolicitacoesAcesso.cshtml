@@ -1,0 +1,65 @@
+@model AprovacoesViewModel
+
+<section class="card" id="usuariosCard">
+  <div class="head head--flush">
+    <div><h2>Solicitações de acesso <span class="pill pill--count">@Model.Solicitacoes.Count</span></h2>
+      <br>
+      <p class="sub card__lead">Confira os dados e defina o perfil que será concedido antes de liberar o usuário.</p></div>
+  </div>
+  <div class="tw mt"><table>
+    <thead><tr><th>Nome</th><th>RE</th><th>Perfil solicitado</th><th>Data</th><th>Perfil autorizado</th><th>Ação</th></tr></thead>
+    <tbody>
+      @foreach (var s in Model.Solicitacoes)
+      {
+          var formId = "f-sol-" + s.IdUsuario;
+          <tr>
+            <td>@s.Nome</td><td>@s.Re</td>
+            <td>@s.Perfil.Rotulo()</td>
+            <td>@s.DataCriacao.ToString("dd/MM/yyyy")</td>
+            <td>
+              <select name="perfil" form="@formId" aria-label="Perfil autorizado para @s.Nome">
+                @foreach (var p in Enum.GetValues<PerfilUsuario>())
+                {
+                    <option value="@p" selected="@(p == s.Perfil)">@p.Rotulo()</option>
+                }
+              </select>
+            </td>
+            <td>
+              <form id="@formId" method="post" asp-controller="Usuarios" asp-action="Aprovar" class="inline-form">
+                <input type="hidden" name="id" value="@s.IdUsuario" />
+                <button type="submit" class="btn pri">Aprovar</button>
+                <button type="submit" class="btn" formaction="@Url.Action("Recusar", "Usuarios")" onclick="return confirm('Deseja realmente recusar esta solicitação?');">Recusar</button>
+              </form>
+            </td>
+          </tr>
+      }
+      @if (Model.Solicitacoes.Count == 0)
+      {
+          <tr><td colspan="6" class="empty">Nenhuma solicitação pendente.</td></tr>
+      }
+    </tbody>
+  </table></div>
+
+  <h3 class="sec">Usuários</h3>
+  <div class="tw mt"><table>
+    <thead><tr><th>Nome</th><th>RE</th><th>Perfil</th><th>Situação</th><th>Ação</th></tr></thead>
+    <tbody>
+      @foreach (var u in Model.Usuarios)
+      {
+          <tr>
+            <td>@u.Nome</td><td>@u.Re</td><td>@u.Perfil.Rotulo()</td><td>@u.Status.Rotulo()</td>
+            <td>
+              <form method="post" asp-controller="Usuarios" asp-action="@(u.Status == StatusUsuario.Ativo ? "Inativar" : "Reativar")" class="inline-form">
+                <input type="hidden" name="id" value="@u.IdUsuario" />
+                <button type="submit" class="btn">@(u.Status == StatusUsuario.Ativo ? "Inativar" : "Reativar")</button>
+              </form>
+            </td>
+          </tr>
+      }
+      @if (Model.Usuarios.Count == 0)
+      {
+          <tr><td colspan="5" class="empty">Nenhum usuário.</td></tr>
+      }
+    </tbody>
+  </table></div>
+</section>

@@ -1,0 +1,77 @@
+@model CatalogoViewModel
+@{
+    ViewData["Title"] = "Catálogo";
+    ViewData["Tema"] = "t-red";
+    ViewData["Nav"] = "catalogo";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/laudos-lista.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/gestao-adm.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/catalogo.css" asp-append-version="true" />
+}
+
+<main>
+  <div class="head"><span class="badge-ic" data-ic="grid"></span><div><h1>Catálogo</h1><p class="sub">Produtos e categorias usados nos laudos. Somente o Programador altera.</p></div></div>
+
+  @await Html.PartialAsync("_Alertas")
+
+  <section class="card" id="tiposCard">
+    <h2><span data-ic="grid"></span>Categorias de dispositivo</h2>
+    <p class="sub card__lead">Cada categoria tem uma cor própria, usada em todas as telas. Categorias desativadas deixam de aparecer nos laudos novos, mas os dispositivos já cadastrados continuam como estão.</p>
+    <div class="tipos">
+      @foreach (var c in Model.Categorias)
+      {
+          <span class="tipo-item @(c.Ativo ? "" : "tipo-item--inativo")">
+            <span class="pill" style="--pill:@c.Cor;color:@c.TextoSobre">@c.Nome</span>
+            <form method="post" asp-controller="Catalogo" asp-action="AlterarCategoria" class="inline-form">
+              <input type="hidden" name="id" value="@c.IdCategoria" />
+              <input type="hidden" name="ativa" value="@((!c.Ativo).ToString().ToLowerInvariant())" />
+              @if (c.Ativo)
+              {
+                  <button type="submit" class="btn-icon" aria-label="Desativar categoria @c.Nome" title="Desativar categoria">@Html.Icon("trash")</button>
+              }
+              else
+              {
+                  <button type="submit" class="btn sm" title="Reativar categoria">Reativar</button>
+              }
+            </form>
+          </span>
+      }
+    </div>
+    <form class="tipo-form" method="post" asp-controller="Catalogo" asp-action="CriarCategoria" autocomplete="off">
+      <div class="f"><label for="tipoNome">Nova categoria</label><input id="tipoNome" name="nome" maxlength="30" placeholder="Ex.: Gabarito de controle" required></div>
+      <div class="f"><label for="tipoCor">Cor</label><input id="tipoCor" name="cor" type="color" value="@Model.CorSugerida" aria-label="Cor da categoria"></div>
+      <button class="btn pri" type="submit">Adicionar categoria</button>
+    </form>
+  </section>
+
+  <section class="card" id="produtosCard">
+    <h2><span data-ic="grid"></span>Produtos</h2>
+    <p class="sub card__lead">Lista usada no campo “Produto” dos laudos.</p>
+    <div class="tipos">
+      @foreach (var p in Model.Produtos)
+      {
+          <span class="tipo-item @(p.Ativo ? "" : "tipo-item--inativo")">
+            <span class="pill" style="--pill:#5b6b82">@p.Nome</span>
+            <form method="post" asp-controller="Catalogo" asp-action="AlterarProduto" class="inline-form">
+              <input type="hidden" name="id" value="@p.IdProduto" />
+              <input type="hidden" name="ativo" value="@((!p.Ativo).ToString().ToLowerInvariant())" />
+              @if (p.Ativo)
+              {
+                  <button type="submit" class="btn-icon" aria-label="Desativar produto @p.Nome" title="Desativar produto">@Html.Icon("trash")</button>
+              }
+              else
+              {
+                  <button type="submit" class="btn sm" title="Reativar produto">Reativar</button>
+              }
+            </form>
+          </span>
+      }
+    </div>
+    <form class="tipo-form" method="post" asp-controller="Catalogo" asp-action="CriarProduto" autocomplete="off">
+      <div class="f"><label for="produtoNome">Novo produto</label><input id="produtoNome" name="nome" maxlength="40" placeholder="Ex.: Plataforma Traseira" required></div>
+      <button class="btn pri" type="submit">Adicionar produto</button>
+    </form>
+  </section>
+</main>

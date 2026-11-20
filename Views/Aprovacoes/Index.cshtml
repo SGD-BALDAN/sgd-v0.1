@@ -1,0 +1,18 @@
+@model AprovacoesViewModel
+@{
+    ViewData["Title"] = "Gestão";
+    ViewData["Tema"] = "t-red";
+    ViewData["Nav"] = "aprovacoes";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/laudos-lista.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/gestao-adm.css" asp-append-version="true" />
+}
+
+<main>
+  <div class="head"><span class="badge-ic" data-ic="file"></span><div><h1>Gestão</h1><p class="sub">Área do Programador: aprovação de acessos e, nos próximos marcos, laudos, produtos e categorias.</p></div></div>
+
+  @await Html.PartialAsync("_Alertas")
+  @await Html.PartialAsync("_SolicitacoesAcesso", Model)
+</main>

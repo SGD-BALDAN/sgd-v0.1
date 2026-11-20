@@ -1,0 +1,119 @@
+@model DispositivoDetalheViewModel
+@{
+    ViewData["Title"] = "Dispositivo " + Model.Codigo;
+    ViewData["Tema"] = "t-red";
+    ViewData["Nav"] = "dispositivos";
+    var podeCriar = (User.IsInRole(Papeis.Projetista) || User.IsInRole(Papeis.Operacional) || User.IsInRole(Papeis.Programador))
+                    && Model.Status != StatusDispositivo.Inativo;
+    var pt = new System.Globalization.CultureInfo("pt-BR");
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/laudos-lista.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/dispositivos.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/dispositivo.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/dispositivos-extra.css" asp-append-version="true" />
+}
+
+<main>
+  <a class="back" href="~/dispositivos"><span data-ic="back"></span>Dispositivos</a>
+  <div class="head">
+    <div><h1>@Model.Codigo</h1><p class="sub">@Model.Produto</p></div><span class="sp"></span>
+    <span class="pill" style="--pill:@Model.CategoriaCor;color:@Model.TextoSobre">@Model.Categoria</span>
+  </div>
+
+  <section class="stats">
+    <div class="stat"><span data-ic="clock"></span><div><small>Última atualização</small><b class="sm">@(Model.UltimaAtualizacao?.ToString("dd/MM/yyyy HH:mm") ?? "—")</b></div></div>
+    <div class="stat"><span data-ic="target"></span><div><small>Status</small><b class="sm">@(Model.StatusMaisRecente?.Rotulo() ?? "Sem laudo")</b></div></div>
+    <div class="stat"><span data-ic="file"></span><div><small>Laudos aprovados</small><b class="sm">@Model.Aprovados.Count</b></div></div>
+  </section>
+
+  <section class="card"><h2><span data-ic="grid"></span>Informações do dispositivo</h2>
+    <div class="kv">
+      <div><small>Número do Dispositivo</small><b>@Model.Codigo</b></div>
+      <div><small>Produto</small><b>@Model.Produto</b></div>
+      <div><small>Categoria</small><span class="pill" style="--pill:@Model.CategoriaCor;color:@Model.TextoSobre">@Model.Categoria</span></div>
+      <div><small>Situação do cadastro</small><b>@Model.Status.Rotulo()</b></div>
+    </div>
+  </section>
+
+  @if (podeCriar)
+  {
+      <section class="card"><h2><span data-ic="plus"></span>Novo laudo deste dispositivo</h2>
+        <p class="sub card__lead">Medidas, checklist e desenho já registrados em outros laudos podem ser reaproveitados no formulário.</p>
+        <div class="actions" style="justify-content:flex-start">
+          @foreach (var t in new[] { TipoLaudo.Liberacao, TipoLaudo.Corretiva, TipoLaudo.Preventiva })
+          {
+              if (t == TipoLaudo.Liberacao && Model.TemLiberacao)
+              {
+                  <span class="btn is-disabled" aria-disabled="true" title="Este dispositivo já tem laudo de liberação (só pode haver um)."><span data-ic="plus"></span>Laudo de @t.Rotulo()</span>
+              }
+              else
+              {
+                  <a class="btn" href="@(Url.Content("~/laudos/" + t.Slug() + "/novo") + "?codigo=" + Uri.EscapeDataString(Model.Codigo))"><span data-ic="plus"></span>Laudo de @t.Rotulo()</a>
+              }
+          }
+        </div>
+      </section>
+  }
+
+  @if (Model.LiberacaoVigente is { } lib)
+  {
+      <section class="card"><h2><span data-ic="file"></span>Laudo de liberação vigente <span class="pill pill--ok">Aprovado</span></h2>
+        <div class="kv">
+          <div><small>Data de início</small><b>@lib.DataInicio.ToString("dd/MM/yyyy")</b></div>
+          <div><small>Ordem de serviço</small><b>@lib.OrdemServico</b></div>
+          <div><small>Responsável pelo projeto</small><b>@(lib.ResponsavelProjeto ?? "—")</b></div>
+          <div><small>Conferente</small><b>@(lib.Conferente ?? "—")</b></div>
+          <div><small>Aprovado por</small><b>@(lib.AprovadoPor ?? "—")</b></div>
+          <div><small>Aprovado em</small><b>@(lib.AprovadoEm?.ToString("dd/MM/yyyy HH:mm") ?? "—")</b></div>
+        </div>
+        <h3 class="sec">Medidas / especificações</h3>
+        <div class="tw"><table>
+          <thead><tr><th>Nº</th><th>Descrição</th><th>Especificação</th><th>Mínimo</th><th>Máximo</th><th>Método / instrumento</th><th>Medição</th><th>Resultado</th></tr></thead>
+          <tbody>
+            @foreach (var m in lib.Medidas)
+            {
+                <tr><td>@m.Numero</td><td>@(m.Descricao ?? "—")</td><td>@(m.Especificacao ?? "—")</td><td>@(m.Minimo?.ToString("0.####", pt) ?? "—")</td><td>@(m.Maximo?.ToString("0.####", pt) ?? "—")</td><td>@(m.Metodo ?? "—")</td><td>@(m.Medicao?.ToString("0.####", pt) ?? "—")</td><td>@m.Resultado</td></tr>
+            }
+            @if (lib.Medidas.Count == 0) { <tr><td colspan="8" class="empty">Sem medidas registradas.</td></tr> }
+          </tbody>
+        </table></div>
+        <h3 class="sec">Checklist</h3>
+        <div class="tw"><table>
+          <thead><tr><th>Nº</th><th>Descrição</th><th>Resultado</th></tr></thead>
+          <tbody>
+            @foreach (var c in lib.Checklist)
+            {
+                <tr><td>@c.Numero</td><td>@c.Descricao</td><td>@c.Resultado</td></tr>
+            }
+            @if (lib.Checklist.Count == 0) { <tr><td colspan="3" class="empty">Sem itens.</td></tr> }
+          </tbody>
+        </table></div>
+      </section>
+  }
+  else
+  {
+      <p class="banner">Este dispositivo ainda não tem laudo de liberação aprovado pela gestão.</p>
+  }
+
+  <section class="card"><h2><span data-ic="clock"></span>Histórico de laudos aprovados</h2>
+    <div class="tw"><table>
+      <thead><tr><th>Aprovado em</th><th>Tipo</th><th>O.S.</th><th>Responsável</th><th>Aprovado por</th><th>Laudo</th></tr></thead>
+      <tbody>
+        @foreach (var a in Model.Aprovados)
+        {
+            <tr>
+              <td>@(a.AprovadoEm?.ToString("dd/MM/yyyy HH:mm") ?? "—")</td>
+              <td style="text-transform:capitalize">@a.Tipo.Rotulo()</td>
+              <td>@a.OrdemServico</td>
+              <td>@(a.Responsavel ?? "—")</td>
+              <td>@(a.AprovadoPor ?? "—")</td>
+              <td><a class="dmp-link" href="@Url.Content("~/laudos/editar/" + a.IdLaudo)">Visualizar</a></td>
+            </tr>
+        }
+        @if (Model.Aprovados.Count == 0) { <tr><td colspan="6" class="empty">Nenhum laudo aprovado ainda.</td></tr> }
+      </tbody>
+    </table></div>
+  </section>
+</main>

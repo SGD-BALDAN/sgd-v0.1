@@ -1,0 +1,13 @@
+@{
+    // Marco 3: o nome virá das claims do usuário autenticado.
+    var nome = User.Identity?.IsAuthenticated == true ? (User.Identity.Name ?? "Usuário") : "Usuário";
+    var iniciais = string.Concat(nome.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => char.ToUpperInvariant(p[0])));
+}
+<span class="sgd"><img src="~/img/LogoBaldan.png" alt="Logo" /> SGD</span><span class="desc">Sistema de Gestão de Dispositivos</span><span class="sp"></span>
+<button class="bell" type="button" aria-label="Notificações">@Html.Icon("bell")</button>
+<div class="user">
+  <span class="av">@iniciais</span><div class="user__info">@nome</div>
+  <form asp-controller="Account" asp-action="Logout" method="post" class="user__logout">
+    <button class="btn-icon" id="sair" type="submit" aria-label="Sair">@Html.Icon("out")</button>
+  </form>
+</div>

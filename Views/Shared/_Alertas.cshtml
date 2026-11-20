@@ -1,0 +1,23 @@
+@if (TempData["Sucesso"] is string sucesso)
+{
+    <div class="alerta alerta--ok" role="status">@sucesso</div>
+}
+@if (TempData["Erro"] is string erro)
+{
+    var linhas = erro.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+    <div class="alerta alerta--erro" role="alert">
+        @if (linhas.Length == 1)
+        {
+            @linhas[0]
+        }
+        else
+        {
+            <ul>
+                @foreach (var linha in linhas)
+                {
+                    <li>@linha</li>
+                }
+            </ul>
+        }
+    </div>
+}

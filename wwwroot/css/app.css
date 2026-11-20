@@ -1,0 +1,9 @@
+/* SGD • Ajustes próprios da versão ASP.NET Core (não existiam no protótipo) */
+.user__logout { display: contents; margin: 0; }
+
+/* Mensagens de retorno (sucesso/erro) após uma ação — partial _Alertas (usa TempData["Sucesso"] e TempData["Erro"]) */
+.alerta { margin: 0 0 1rem; padding: .75rem 1rem; border-radius: 10px; border: 1px solid transparent; font-size: .92rem; }
+.alerta ul { margin: .25rem 0 0; padding-left: 1.2rem; }
+.alerta--ok { background: rgba(15, 157, 88, .12); border-color: rgba(15, 157, 88, .45); }
+.alerta--erro { background: rgba(224, 16, 30, .12); border-color: rgba(224, 16, 30, .45); }
+.inline-form { display: inline-flex; gap: .4rem; margin: 0; }

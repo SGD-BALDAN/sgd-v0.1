@@ -166,14 +166,27 @@ public class LaudosController : Controller
     {
         var laudo = await CarregarLaudo(id); if (laudo == null) return NotFound();
         if (!PodeEditarEstrutura(laudo) && !PodePreencher(laudo)) return Forbid();
-        if (laudo.Medidas.Any(x => x.Resultado == ResultadoMedida.Aguardando))
-        { TempData["Erro"] = "Preencha todas as medições antes de enviar."; return RedirectToAction(nameof(Editar), new { id }); }
-        // PROJETO: primeiro envio do projetista vai ao operador; o envio do operador vai à aprovação.
-        laudo.Status = laudo.Modo == ModoLaudo.Projeto && laudo.Status == StatusLaudo.EmAndamento
-            ? StatusLaudo.AguardandoOperador : StatusLaudo.AguardandoAprovacao;
-        // No modo projeto, o próximo responsável é o operador/conferente designado.
-        if (laudo.Modo == ModoLaudo.Projeto && !laudo.IdConferente.HasValue)
-        { TempData["Erro"] = "Defina o conferente/operador antes de enviar."; laudo.Status = StatusLaudo.EmAndamento; return RedirectToAction(nameof(Editar), new { id }); }
+        // Só se envia laudo em edição (EmAndamento) ou na etapa do operador; reprovado precisa ser reaberto antes.
+        if (laudo.Status != StatusLaudo.EmAndamento && laudo.Status != StatusLaudo.AguardandoOperador)
+        { TempData["Erro"] = laudo.Status == StatusLaudo.Reprovado ? "Reabra o laudo para correção antes de reenviar." : "Este laudo não pode ser enviado no status atual."; return RedirectToAction(nameof(Editar), new { id }); }
+
+        // PROJETO, primeiro envio: o projetista entrega só a estrutura; as medições são feitas depois pelo operador.
+        var envioDoProjetista = laudo.Modo == ModoLaudo.Projeto && laudo.Status == StatusLaudo.EmAndamento;
+        if (envioDoProjetista)
+        {
+            if (!laudo.Medidas.Any())
+            { TempData["Erro"] = "Defina ao menos uma medida antes de enviar ao operador."; return RedirectToAction(nameof(Editar), new { id }); }
+            if (!laudo.IdConferente.HasValue)
+            { TempData["Erro"] = "Defina o conferente/operador antes de enviar."; return RedirectToAction(nameof(Editar), new { id }); }
+            laudo.Status = StatusLaudo.AguardandoOperador;
+        }
+        else
+        {
+            // LEGADO (criador preenche tudo) e envio do operador no PROJETO: tudo medido, vai à aprovação.
+            if (laudo.Medidas.Any(x => x.Resultado == ResultadoMedida.Aguardando))
+            { TempData["Erro"] = "Preencha todas as medições antes de enviar."; return RedirectToAction(nameof(Editar), new { id }); }
+            laudo.Status = StatusLaudo.AguardandoAprovacao;
+        }
         laudo.DataEnvio = DateTime.Now; laudo.DataAtualizacao = DateTime.Now;
         await RegistrarHistorico(laudo, "Laudo enviado para a próxima etapa."); await _db.SaveChangesAsync();
         return RedirectToAction(nameof(Index));
@@ -263,9 +276,17 @@ public class LaudosController : Controller
         .FirstOrDefaultAsync(x => x.IdLaudo == id);
 
     // M6-01 — Projetista altera estrutura em EmAndamento/Reprovado; Operacional preenche apenas em AguardandoOperador.
-    private bool PodeEditarEstrutura(Laudo l) => _usuario.Perfil == PerfilUsuario.Programador ||
-        (_usuario.Perfil == PerfilUsuario.Projetista && l.IdResponsavelProjeto == _usuario.IdUsuario && l.Status is StatusLaudo.EmAndamento or StatusLaudo.Reprovado);
-    private bool PodePreencher(Laudo l) => _usuario.Perfil == PerfilUsuario.Operacional && l.IdConferente == _usuario.IdUsuario && l.Status == StatusLaudo.AguardandoOperador;
+    // M6-03 — no LEGADO não há projetista: o criador (conferente) edita a estrutura e preenche enquanto o laudo está aberto.
+    private bool PodeEditarEstrutura(Laudo l) => _usuario.Perfil == PerfilUsuario.Programador
+        || (_usuario.Perfil == PerfilUsuario.Projetista && l.IdResponsavelProjeto == _usuario.IdUsuario && LaudoAberto(l))
+        || EhCriadorLegado(l);
+    private bool PodePreencher(Laudo l) =>
+        (_usuario.Perfil == PerfilUsuario.Operacional && l.IdConferente == _usuario.IdUsuario && l.Status == StatusLaudo.AguardandoOperador)
+        || EhCriadorLegado(l);
+
+    private static bool LaudoAberto(Laudo l) => l.Status is StatusLaudo.EmAndamento or StatusLaudo.Reprovado;
+    private bool EhCriadorLegado(Laudo l) => l.Modo == ModoLaudo.Legado && l.IdConferente == _usuario.IdUsuario
+        && _usuario.Perfil != PerfilUsuario.Gerente && LaudoAberto(l);
 
     private async Task RegistrarHistorico(Laudo laudo, string? motivo)
     {

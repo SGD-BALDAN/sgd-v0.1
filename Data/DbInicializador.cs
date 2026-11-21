@@ -22,9 +22,8 @@ public static class DbInicializador
         }
         catch (Exception ex)
         {
-            logger.LogError(ex,
-                "Não foi possível inicializar o banco. Gere a migration (dotnet ef migrations add Inicial -o Data/Migrations) " +
-                "e aplique (dotnet ef database update), ou execute Database/001_schema.sql no MySQL.");
+            logger.LogCritical(ex, "Falha ao inicializar o banco de dados do SGD. A aplicação será interrompida para evitar operar sem persistência.");
+            throw new InvalidOperationException("Não foi possível inicializar o banco de dados do SGD. Confira a connection string e aplique as migrations.", ex);
         }
     }
 

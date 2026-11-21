@@ -33,6 +33,11 @@ public class LaudoConfiguration : IEntityTypeConfiguration<Laudo>
         b.Property<int?>("ChaveLiberacaoUnica")
             .HasComputedColumnSql("IF(`tipo` = 'Liberacao', `id_dispositivo`, NULL)", stored: true);
         b.HasIndex("ChaveLiberacaoUnica").IsUnique();
+
+        // Regra: no máximo 1 laudo Preventiva por dispositivo; Corretiva pode ser múltipla.
+        b.Property<int?>("ChavePreventivaUnica")
+            .HasComputedColumnSql("IF(`tipo` = 'Preventiva', `id_dispositivo`, NULL)", stored: true);
+        b.HasIndex("ChavePreventivaUnica").IsUnique();
     }
 }
 
@@ -79,7 +84,7 @@ public class ItemChecklistConfiguration : IEntityTypeConfiguration<ItemChecklist
         b.ToTable("checklist");
         b.HasKey(x => x.IdChecklist);
         b.Property(x => x.Descricao).HasMaxLength(255).IsRequired();
-        b.Property(x => x.Resultado).HasConversion<string>().HasMaxLength(10).IsRequired();
+        b.Property(x => x.Resultado).HasConversion<string>().HasMaxLength(15).IsRequired();
         b.HasOne(x => x.Laudo).WithMany(l => l.Checklist).HasForeignKey(x => x.IdLaudo).OnDelete(DeleteBehavior.Cascade);
         b.HasIndex(x => new { x.IdLaudo, x.Numero });
     }

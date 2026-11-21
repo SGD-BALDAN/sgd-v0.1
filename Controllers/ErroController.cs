@@ -29,7 +29,7 @@ public class ErroController : Controller
         };
 
         Response.StatusCode = status;
-        return View(new ErroViewModel
+        return View(new ErrorViewModel
         {
             Codigo = status,
             Titulo = titulo,

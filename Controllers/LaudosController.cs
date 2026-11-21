@@ -5,6 +5,7 @@ using SgdBaldan.Data;
 using SgdBaldan.Infrastructure;
 using SgdBaldan.Models;
 using SgdBaldan.Models.Enums;
+using SgdBaldan.Services;
 using SgdBaldan.ViewModels;
 
 namespace SgdBaldan.Controllers;
@@ -16,10 +17,10 @@ public class LaudosController : Controller
 {
     private readonly SgdDbContext _db;
     private readonly IUsuarioAtual _usuario;
-    private readonly IWebHostEnvironment _ambiente;
+    private readonly IAnexoService _anexos;
 
-    public LaudosController(SgdDbContext db, IUsuarioAtual usuario, IWebHostEnvironment ambiente)
-    { _db = db; _usuario = usuario; _ambiente = ambiente; }
+    public LaudosController(SgdDbContext db, IUsuarioAtual usuario, IAnexoService anexos)
+    { _db = db; _usuario = usuario; _anexos = anexos; }
 
     // M6-08 — lista do usuário, agrupada por tipo e com contadores por status.
     [HttpGet("")]
@@ -51,8 +52,16 @@ public class LaudosController : Controller
         if (!ModelState.IsValid) { vm.Dispositivos = await _db.Dispositivos.Include(x => x.Produto).ToListAsync(); return View(vm); }
         if (_usuario.Perfil == PerfilUsuario.Gerente) return Forbid();
         // M6-07 — uma liberação por dispositivo e limite de 20 laudos por usuário/tipo.
-        if (vm.Tipo == TipoLaudo.Liberacao && await _db.Laudos.AnyAsync(x => x.IdDispositivo == vm.IdDispositivo && x.Tipo == TipoLaudo.Liberacao))
-            ModelState.AddModelError(nameof(vm.IdDispositivo), "Este dispositivo já possui um laudo de liberação.");
+        // Permite apenas um laudo de Liberação por dispositivo.
+        if (vm.Tipo == TipoLaudo.Liberacao &&
+            await _db.Laudos.AnyAsync(x =>
+                x.IdDispositivo == vm.IdDispositivo &&
+                x.Tipo == TipoLaudo.Liberacao))
+        {
+            ModelState.AddModelError(
+                nameof(vm.IdDispositivo),
+                "Este dispositivo já possui um laudo de liberação.");
+        }
         var dono = vm.Modo == ModoLaudo.Projeto ? _usuario.IdUsuario : vm.IdConferente;
         if (dono.HasValue && await _db.Laudos.CountAsync(x => x.Tipo == vm.Tipo && (x.IdResponsavelProjeto == dono || x.IdConferente == dono)) >= 20)
             ModelState.AddModelError("", "O limite de 20 laudos deste tipo por usuário foi atingido.");
@@ -113,7 +122,7 @@ public class LaudosController : Controller
         // M6-06 — itens são definidos pelo criador e iniciam sem resultado validado.
         laudo.Checklist.Clear();
         foreach (var item in vm.ItensChecklist ?? new())
-            if (!string.IsNullOrWhiteSpace(item.Descricao)) laudo.Checklist.Add(new ItemChecklist { Numero = item.Numero, Descricao = item.Descricao.Trim(), Resultado = ResultadoChecklist.Ok });
+            if (!string.IsNullOrWhiteSpace(item.Descricao)) laudo.Checklist.Add(new ItemChecklist { Numero = item.Numero, Descricao = item.Descricao.Trim(), Resultado = ResultadoChecklist.Aguardando });
         // M6-09 — campos estruturados do laudo corretivo e do Ishikawa 6M.
         if (laudo.Tipo == TipoLaudo.Corretiva)
         {
@@ -185,6 +194,8 @@ public class LaudosController : Controller
             // LEGADO (criador preenche tudo) e envio do operador no PROJETO: tudo medido, vai à aprovação.
             if (laudo.Medidas.Any(x => x.Resultado == ResultadoMedida.Aguardando))
             { TempData["Erro"] = "Preencha todas as medições antes de enviar."; return RedirectToAction(nameof(Editar), new { id }); }
+            if (laudo.Checklist.Any(x => x.Resultado == ResultadoChecklist.Aguardando))
+            { TempData["Erro"] = "Preencha todos os itens do checklist antes de enviar."; return RedirectToAction(nameof(Editar), new { id }); }
             laudo.Status = StatusLaudo.AguardandoAprovacao;
         }
         laudo.DataEnvio = DateTime.Now; laudo.DataAtualizacao = DateTime.Now;
@@ -253,7 +264,32 @@ public class LaudosController : Controller
                 : _usuario.IdUsuario,
             Status = StatusLaudo.EmAndamento };
         foreach (var m in origem.Medidas) novo.Medidas.Add(new MedidaEspecificacao { Numero=m.Numero, Descricao=m.Descricao, Especificacao=m.Especificacao, LimiteMin=m.LimiteMin, LimiteMax=m.LimiteMax, MetodoInstrumento=m.MetodoInstrumento });
-        foreach (var c in origem.Checklist) novo.Checklist.Add(new ItemChecklist { Numero=c.Numero, Descricao=c.Descricao, Resultado=ResultadoChecklist.Na });
+        foreach (var c in origem.Checklist) novo.Checklist.Add(new ItemChecklist { Numero=c.Numero, Descricao=c.Descricao, Resultado=ResultadoChecklist.Aguardando });
+        if (origem.Tipo == TipoLaudo.Corretiva && origem.Corretiva != null)
+        {
+            novo.Corretiva = new LaudoCorretiva
+            {
+                DescricaoFalha = origem.Corretiva.DescricaoFalha,
+                ComponenteAfetado = origem.Corretiva.ComponenteAfetado,
+                TipoFalha = origem.Corretiva.TipoFalha,
+                CausasSugeridas = origem.Corretiva.CausasSugeridas,
+                OutrasInformacoes = origem.Corretiva.OutrasInformacoes,
+                Ishikawa = origem.Corretiva.Ishikawa == null ? null : new Ishikawa
+                {
+                    Metodo = origem.Corretiva.Ishikawa.Metodo, Maquina = origem.Corretiva.Ishikawa.Maquina,
+                    Material = origem.Corretiva.Ishikawa.Material, Medicao = origem.Corretiva.Ishikawa.Medicao,
+                    MeioAmbiente = origem.Corretiva.Ishikawa.MeioAmbiente, MaoDeObra = origem.Corretiva.Ishikawa.MaoDeObra,
+                    CausaRaiz = origem.Corretiva.Ishikawa.CausaRaiz
+                }
+            };
+            foreach (var acao in origem.Corretiva.Acoes)
+                novo.Corretiva.Acoes.Add(new AcaoCorretiva { Numero = acao.Numero, Oque = acao.Oque, Como = acao.Como });
+        }
+        // M7-03 — o desenho é reaproveitado por metadados, apontando para o mesmo arquivo físico.
+        foreach (var anexo in origem.Anexos.Where(a => a.Categoria == CategoriaAnexo.DesenhoTecnico))
+            novo.Anexos.Add(new Anexo { Categoria = anexo.Categoria, NomeOriginal = anexo.NomeOriginal,
+                TipoMime = anexo.TipoMime, TamanhoBytes = anexo.TamanhoBytes,
+                CaminhoArquivo = anexo.CaminhoArquivo, DataEnvio = DateTime.Now });
         _db.Laudos.Add(novo); await _db.SaveChangesAsync(); await RegistrarHistorico(novo, $"Estrutura reaproveitada do laudo {id}.");
         return RedirectToAction(nameof(Editar), new { id = novo.IdLaudo });
     }
@@ -270,8 +306,73 @@ public class LaudosController : Controller
         _db.Dispositivos.Remove(d); await _db.SaveChangesAsync(); return Ok(new { sucesso = true });
     }
 
+    // M7-01/M7-02 — upload validado e armazenado fora de wwwroot.
+    [HttpPost("{id:int}/anexos")]
+    [ValidateAntiForgeryToken]
+    [RequestSizeLimit(11 * 1024 * 1024)]
+    public async Task<IActionResult> EnviarAnexo(int id, IFormFile arquivo, CategoriaAnexo categoria, CancellationToken cancellationToken)
+    {
+        var laudo = await CarregarLaudo(id);
+        if (laudo == null) return NotFound();
+        if (!PodeEditarEstrutura(laudo) && _usuario.Perfil != PerfilUsuario.Programador) return Forbid();
+        try
+        {
+            var resultado = await _anexos.SalvarAsync(id, categoria, arquivo, cancellationToken);
+            if (!resultado.Sucesso) TempData["Erro"] = resultado.Erro;
+            else TempData["Sucesso"] = "Anexo enviado com sucesso.";
+        }
+        catch (Exception)
+        {
+            TempData["Erro"] = "Não foi possível armazenar o anexo. Verifique o log do servidor.";
+        }
+        return RedirectToAction(nameof(Editar), new { id });
+    }
+
+    // M7-03 — download autenticado; somente participantes do laudo, Programador ou Gerente.
+    [HttpGet("anexos/{idAnexo:int}/download")]
+    public async Task<IActionResult> DownloadAnexo(int idAnexo, CancellationToken cancellationToken)
+    {
+        var anexo = await _anexos.ObterAsync(idAnexo, cancellationToken);
+        if (anexo == null) return NotFound();
+        var laudo = await _db.Laudos.AsNoTracking().FirstOrDefaultAsync(x => x.IdLaudo == anexo.IdLaudo, cancellationToken);
+        if (laudo == null) return NotFound();
+        var autorizado = _usuario.Perfil is PerfilUsuario.Programador or PerfilUsuario.Gerente
+            || laudo.IdResponsavelProjeto == _usuario.IdUsuario || laudo.IdConferente == _usuario.IdUsuario;
+        if (!autorizado) return Forbid();
+        var stream = await _anexos.AbrirAsync(anexo, cancellationToken);
+        if (stream == null) return NotFound("Arquivo não encontrado no armazenamento.");
+        return File(stream, anexo.TipoMime, anexo.NomeOriginal);
+    }
+
+    // M8-03 — custos podem ser registrados na aprovação e atualizados após a aprovação.
+    [HttpPost("{id:int}/custos")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RegistrarCustos(int id, decimal? custoMaterial, decimal? custoMaoObra)
+    {
+        if (_usuario.Perfil != PerfilUsuario.Programador) return Forbid();
+        var laudo = await CarregarLaudo(id);
+        if (laudo == null) return NotFound();
+        if (laudo.Status is not (StatusLaudo.AguardandoAprovacao or StatusLaudo.Aprovado))
+        {
+            TempData["Erro"] = "Os custos só podem ser registrados durante a aprovação ou após a aprovação.";
+            return RedirectToAction(nameof(Editar), new { id });
+        }
+        const decimal maximo = 99999999.99m;
+        if (custoMaterial < 0 || custoMaoObra < 0 || custoMaterial > maximo || custoMaoObra > maximo)
+        {
+            TempData["Erro"] = "Os custos devem estar entre R$ 0,00 e R$ 99.999.999,99.";
+            return RedirectToAction(nameof(Editar), new { id });
+        }
+        laudo.CustoMaterial = custoMaterial;
+        laudo.CustoMaoObra = custoMaoObra;
+        laudo.DataAtualizacao = DateTime.Now;
+        await RegistrarHistorico(laudo, $"Custos atualizados — material: {laudo.CustoMaterial?.ToString("F2", System.Globalization.CultureInfo.GetCultureInfo("pt-BR")) ?? "não informado"}; mão de obra: {laudo.CustoMaoObra?.ToString("F2", System.Globalization.CultureInfo.GetCultureInfo("pt-BR")) ?? "não informado"}.");
+        TempData["Sucesso"] = "Custos registrados.";
+        return RedirectToAction(nameof(Editar), new { id });
+    }
+
     private async Task<Laudo?> CarregarLaudo(int id) => await _db.Laudos.Include(x => x.Dispositivo).ThenInclude(x => x.Produto)
-        .Include(x => x.Medidas).Include(x => x.Checklist).Include(x => x.Historico).ThenInclude(x => x.Usuario)
+        .Include(x => x.Medidas).Include(x => x.Checklist).Include(x => x.Anexos).Include(x => x.Historico).ThenInclude(x => x.Usuario)
         .Include(x => x.Corretiva).ThenInclude(x => x!.Ishikawa).Include(x => x.Corretiva).ThenInclude(x => x!.Acoes)
         .FirstOrDefaultAsync(x => x.IdLaudo == id);
 

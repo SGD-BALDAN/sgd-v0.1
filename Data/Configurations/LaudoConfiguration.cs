@@ -34,10 +34,6 @@ public class LaudoConfiguration : IEntityTypeConfiguration<Laudo>
             .HasComputedColumnSql("IF(`tipo` = 'Liberacao', `id_dispositivo`, NULL)", stored: true);
         b.HasIndex("ChaveLiberacaoUnica").IsUnique();
 
-        // Regra: no máximo 1 laudo Preventiva por dispositivo; Corretiva pode ser múltipla.
-        b.Property<int?>("ChavePreventivaUnica")
-            .HasComputedColumnSql("IF(`tipo` = 'Preventiva', `id_dispositivo`, NULL)", stored: true);
-        b.HasIndex("ChavePreventivaUnica").IsUnique();
     }
 }
 

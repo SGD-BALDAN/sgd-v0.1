@@ -15,11 +15,27 @@ foreach(var campo in new[]{("Metodo","Método",ish?.Metodo),("Maquina","Máquina
 <button class="btn btn-primary" type="submit">Salvar estrutura</button></form>}
 @if(Model.PodePreencher){<form method="post" action="/laudos/@l.IdLaudo/preenchimento">@Html.AntiForgeryToken()<h2>Preenchimento do operador (M6-04)</h2>
 @foreach(var m in medidas){<div class="mb-2"><label>@m.Descricao — @m.Especificacao (mín. @m.LimiteMin / máx. @m.LimiteMax)</label><input type="hidden" name="Medicoes.Index" value="@m.IdMedida"/><input type="hidden" name="Medicoes[@m.IdMedida].IdMedida" value="@m.IdMedida"/><input class="form-control" type="text" inputmode="decimal" name="Medicoes[@m.IdMedida].Medicao" value="@m.Medicao"/></div>}
-@foreach(var c in checklist){<div class="mb-2"><label>@c.Descricao</label><input type="hidden" name="ResultadosChecklist.Index" value="@c.IdChecklist"/><input type="hidden" name="ResultadosChecklist[@c.IdChecklist].IdChecklist" value="@c.IdChecklist"/><select class="form-select" name="ResultadosChecklist[@c.IdChecklist].Resultado"><option value="Ok">OK</option><option value="NaoOk">NÃO OK</option><option value="Na">N/A</option></select></div>}
+@foreach(var c in checklist){<div class="mb-2"><label>@c.Descricao</label><input type="hidden" name="ResultadosChecklist.Index" value="@c.IdChecklist"/><input type="hidden" name="ResultadosChecklist[@c.IdChecklist].IdChecklist" value="@c.IdChecklist"/><select class="form-select" name="ResultadosChecklist[@c.IdChecklist].Resultado"><option value="Aguardando" selected="@(c.Resultado == ResultadoChecklist.Aguardando)">Aguardando</option><option value="Ok" selected="@(c.Resultado == ResultadoChecklist.Ok)">OK</option><option value="NaoOk" selected="@(c.Resultado == ResultadoChecklist.NaoOk)">NÃO OK</option><option value="Na" selected="@(c.Resultado == ResultadoChecklist.Na)">N/A</option></select></div>}
 <button class="btn btn-primary">Salvar preenchimento</button></form>}
 <form method="post" action="/laudos/@l.IdLaudo/enviar" class="my-3">@Html.AntiForgeryToken()<button class="btn btn-success">Enviar laudo</button></form>
 @if(l.Status==StatusLaudo.Reprovado){<p><strong>Motivo da reprovação:</strong> @l.Historico.OrderByDescending(x=>x.DataHora).FirstOrDefault(x=>!string.IsNullOrEmpty(x.Motivo))?.Motivo</p><form method="post" action="/laudos/@l.IdLaudo/reenviar">@Html.AntiForgeryToken()<button class="btn btn-warning">Reabrir para correção</button></form>}
 @if(l.Status==StatusLaudo.AguardandoAprovacao){<form method="post" action="/laudos/@l.IdLaudo/aprovar" class="d-inline">@Html.AntiForgeryToken()<button class="btn btn-success">Aprovar</button></form><form method="post" action="/laudos/@l.IdLaudo/reprovar" class="d-inline">@Html.AntiForgeryToken()<input name="motivo" required placeholder="Motivo da reprovação"/><button class="btn btn-danger">Reprovar</button></form>}
+<hr/><h2>Anexos (Marco 7)</h2>
+@if(l.Anexos.Any()){
+<ul>@foreach(var a in l.Anexos.OrderByDescending(x=>x.DataEnvio)){<li>@a.Categoria — @a.NomeOriginal (@(a.TamanhoBytes / 1024) KB) — <a href="/laudos/anexos/@a.IdAnexo/download">Baixar</a></li>}</ul>
+}else{<p>Nenhum anexo enviado.</p>}
+@if(Model.PodeEditarEstrutura || User.IsInRole("Programador")){
+<form method="post" enctype="multipart/form-data" action="/laudos/@l.IdLaudo/anexos" class="mb-3">@Html.AntiForgeryToken()
+<label class="form-label">Categoria do anexo</label><select name="categoria" class="form-select mb-2" required>
+@if(l.Modo==ModoLaudo.Projeto){<option value="DesenhoTecnico">Desenho técnico (principal)</option>}
+@if(l.Modo==ModoLaudo.Legado){<option value="FotoDispositivo">Foto do dispositivo (principal)</option>}
+<option value="FotoOcorrencia">Foto da ocorrência</option><option value="FotoTrabalho">Foto do trabalho</option></select>
+<input type="file" name="arquivo" class="form-control mb-2" accept=".jpg,.jpeg,.png,.pdf" required/><small>JPEG, PNG ou PDF; máximo de 10 MB.</small><button class="btn btn-outline-primary mt-2" type="submit">Enviar anexo</button></form>}
+@if(User.IsInRole("Programador") && (l.Status==StatusLaudo.AguardandoAprovacao || l.Status==StatusLaudo.Aprovado)){
+<hr/><h2>Custos (Marco 8)</h2><form method="post" action="/laudos/@l.IdLaudo/custos" class="row g-2">@Html.AntiForgeryToken()
+<div class="col-md-5"><label class="form-label">Custo de material (R$)</label><input class="form-control" type="number" min="0" max="99999999.99" step="0.01" name="custoMaterial" value="@l.CustoMaterial"/></div>
+<div class="col-md-5"><label class="form-label">Custo de mão de obra (R$)</label><input class="form-control" type="number" min="0" max="99999999.99" step="0.01" name="custoMaoObra" value="@l.CustoMaoObra"/></div>
+<div class="col-md-2 align-self-end"><button class="btn btn-primary">Salvar custos</button></div></form>}
 <h2>Histórico</h2><ul>@foreach(var h in l.Historico.OrderByDescending(x=>x.DataHora)){<li>@h.DataHora — @h.Status — @h.Usuario?.Nome — @h.Motivo</li>}</ul>
 <form method="post" action="/laudos/@l.IdLaudo/reaproveitar">@Html.AntiForgeryToken()<button class="btn btn-outline-secondary">Reaproveitar estrutura</button></form>
 <form method="post" action="/laudos/@l.IdLaudo/excluir" class="mt-2">@Html.AntiForgeryToken()<button class="btn btn-outline-danger">Excluir (somente EmAndamento)</button></form>

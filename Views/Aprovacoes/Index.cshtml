@@ -15,4 +15,24 @@
 
   @await Html.PartialAsync("_Alertas")
   @await Html.PartialAsync("_SolicitacoesAcesso", Model)
+
+  <section class="mt-4">
+    <h2>Laudos aguardando aprovação</h2>
+    @if (!Model.LaudosPendentes.Any())
+    {
+      <p>Não há laudos aguardando aprovação.</p>
+    }
+    else
+    {
+      <div class="table-responsive"><table class="table table-striped align-middle">
+        <thead><tr><th>OS</th><th>Dispositivo</th><th>Tipo</th><th>Modo</th><th>Responsável</th><th>Conferente</th><th>Enviado em</th><th></th></tr></thead>
+        <tbody>@foreach (var laudo in Model.LaudosPendentes)
+        {
+          <tr><td>@laudo.OrdemServico</td><td>@laudo.Dispositivo.Codigo</td><td>@laudo.Tipo</td><td>@laudo.Modo</td>
+          <td>@laudo.ResponsavelProjeto?.Nome</td><td>@laudo.Conferente?.Nome</td><td>@laudo.DataEnvio?.ToString("dd/MM/yyyy HH:mm")</td>
+          <td><a class="btn btn-sm btn-primary" href="/laudos/@laudo.IdLaudo">Analisar</a></td></tr>
+        }</tbody>
+      </table></div>
+    }
+  </section>
 </main>

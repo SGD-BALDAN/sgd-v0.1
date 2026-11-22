@@ -11,7 +11,7 @@ public class UsuarioConfiguration : IEntityTypeConfiguration<Usuario>
         b.ToTable("usuarios");
         b.HasKey(x => x.IdUsuario);
         b.Property(x => x.Nome).HasMaxLength(150).IsRequired();
-        b.Property(x => x.Re).HasMaxLength(30).IsRequired();
+        b.Property(x => x.Re).HasColumnType("varchar(5)").IsRequired();   // RE: exatamente 5 dígitos numéricos
         b.Property(x => x.SenhaHash).HasMaxLength(255).IsRequired();
         b.Property(x => x.Perfil).HasConversion<string>().HasMaxLength(20).IsRequired();
         b.Property(x => x.Status).HasConversion<string>().HasMaxLength(20).IsRequired();

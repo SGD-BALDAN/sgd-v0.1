@@ -28,7 +28,7 @@
       <p class="subtitle">Preencha seus dados. A Gestão avaliará sua solicitação.</p>
       <form id="cadastroForm" class="form" asp-controller="Account" asp-action="Cadastro" method="post" novalidate>
         <div class="field"><label class="field__icon" for="nome"><span class="sr-only">Nome</span> N</label><input id="nome" name="Nome" value="@Model.Nome" type="text" maxlength="100" placeholder="Nome completo" autocomplete="name" required></div>
-        <div class="field"><label class="field__icon" for="re"><span class="sr-only">RE</span> RE</label><input id="re" name="Re" value="@Model.Re" type="text" maxlength="30" placeholder="Registro (RE)" autocomplete="username" required></div>
+        <div class="field"><label class="field__icon" for="re"><span class="sr-only">RE</span> RE</label><input id="re" name="Re" value="@Model.Re" type="text" inputmode="numeric" pattern="[0-9]{5}" minlength="5" maxlength="5" placeholder="Registro (RE) — 5 dígitos" autocomplete="username" required></div>
         <div class="field"><label class="field__icon" for="senha"><span class="sr-only">Senha</span> <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></label><input id="senha" name="Senha" type="password" minlength="8" placeholder="Senha (mínimo 8 caracteres)" autocomplete="new-password" required></div>
         <div class="field"><label class="field__icon" for="perfil"><span class="sr-only">Perfil solicitado</span> P</label>
           <select id="perfil" name="PerfilSolicitado" required>

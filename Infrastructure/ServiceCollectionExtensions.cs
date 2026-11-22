@@ -57,6 +57,8 @@ public static class ServiceCollectionExtensions
                 .Bind(config.GetSection(AuthOptions.Secao))
                 .ValidateDataAnnotations()
                 .ValidateOnStart();
+        services.AddOptions<ArmazenamentoOptions>()
+                .Bind(config.GetSection(ArmazenamentoOptions.Secao));
         return services;
     }
 

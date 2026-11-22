@@ -64,10 +64,17 @@ public static class DbInicializador
             return;
         }
 
+        re = re.Trim();
+        if (!System.Text.RegularExpressions.Regex.IsMatch(re, @"^[0-9]{5}$"))
+        {
+            logger.LogError("Seed:Programador:Re inválido: o RE deve ter exatamente 5 dígitos numéricos. Programador inicial não criado.");
+            return;
+        }
+
         var usuario = new Usuario
         {
             Nome = nome.Trim(),
-            Re = re.Trim(),
+            Re = re,
             Perfil = PerfilUsuario.Programador,
             Status = StatusUsuario.Ativo
         };

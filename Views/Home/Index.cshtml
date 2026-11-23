@@ -24,27 +24,27 @@
                             data-ic="wrench" ></span>
                         <h2>Laudo corretiva</h2>
                         <p>Registre a correção de falhas e indique a causa raiz para evitar a reincidência.</p>
-                        <div class="big__count"><b data-cnt="corretiva">0</b><span>na fila · máx. @Model.LimiteFila</span></div>
+                        <div class="big__count"><b data-cnt="corretiva">@Model.Fila[TipoLaudo.Corretiva]</b><span>na fila · máx. @Model.LimiteFila</span></div>
                     </a>
                     <a class="big__card big__card--preventivo" href="~/laudos/preventiva"><span class="big__icon"
                             data-ic="cal"></span>
                         <h2>Laudo preventiva</h2>
                         <p>Realize a manutenção conforme o checklist específico de cada dispositivo.</p>
-                        <div class="big__count"><b data-cnt="preventiva">0</b><span>na fila · máx. @Model.LimiteFila</span></div>
+                        <div class="big__count"><b data-cnt="preventiva">@Model.Fila[TipoLaudo.Preventiva]</b><span>na fila · máx. @Model.LimiteFila</span></div>
                     </a>
                     <a class="big__card big__card--liberacao" href="~/laudos/liberacao"><span class="big__icon"
                             data-ic="file"></span>
                         <h2>Laudo liberação</h2>
                         <p>Confirme as medidas críticas, checklist e libere o dispositivo para uso.</p>
-                        <div class="big__count"><b data-cnt="liberacao">0</b><span>na fila · máx. @Model.LimiteFila</span></div>
+                        <div class="big__count"><b data-cnt="liberacao">@Model.Fila[TipoLaudo.Liberacao]</b><span>na fila · máx. @Model.LimiteFila</span></div>
                     </a>
                 </section>
                 <section class="stats">
                     <div class="stat"><span data-ic="target"></span>
-                        <div><small>Dispositivos cadastrados</small><b id="nDev"></b></div>
+                        <div><small>Dispositivos cadastrados</small><b id="nDev">@Model.Dispositivos</b></div>
                     </div>
                     <div class="stat"><span data-ic="warn"></span>
-                        <div><small>Para refazer (reprovados)</small><b id="nRedo">0</b></div>
+                        <div><small>Para refazer (reprovados)</small><b id="nRedo">@Model.Reprovados</b></div>
                     </div>
                 </section>
             </main>

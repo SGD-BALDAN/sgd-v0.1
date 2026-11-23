@@ -1,0 +1,20 @@
+@using SgdBaldan.Services
+@model LinhaMedidaModel
+@{
+    var m = Model.Item;
+    var i = Model.Indice;
+    var e = Model.EditaEstrutura;
+    var resultado = m.Resultado == ResultadoMedida.Aguardando ? "—" : m.Resultado.Rotulo();
+    var classe = m.Resultado == ResultadoMedida.Aprovado ? "aprovado" : m.Resultado == ResultadoMedida.Reprovado ? "reprovado" : "pendente";
+}
+<tr>
+  <td><input type="hidden" name="Medidas[@i].IdMedida" data-f="IdMedida" value="@m.IdMedida"><input type="number" name="Medidas[@i].Numero" data-f="Numero" value="@(m.Numero == 0 ? "" : m.Numero.ToString())" min="1" aria-label="Número da medida" readonly="@(!e)"></td>
+  <td><select name="Medidas[@i].Descricao" data-f="Descricao" aria-label="Descrição" disabled="@(!e)">@foreach (var v in Enum.GetValues<DescricaoMedida>()) { <option value="@v" selected="@(m.Descricao == v)">@v.Rotulo()</option> }</select></td>
+  <td><input class="medida-especificacao" name="Medidas[@i].Especificacao" data-f="Especificacao" value="@m.Especificacao" placeholder="50 ± 0,5" maxlength="30" aria-label="Especificação" readonly="@(!e)"></td>
+  <td><input class="medida-min" value="@LaudoFluxo.Formatar(m.LimiteMin)" readonly aria-label="Mínimo"></td>
+  <td><input class="medida-max" value="@LaudoFluxo.Formatar(m.LimiteMax)" readonly aria-label="Máximo"></td>
+  <td><select name="Medidas[@i].Metodo" data-f="Metodo" aria-label="Método / instrumento" disabled="@(!e)">@foreach (var v in Enum.GetValues<MetodoInstrumento>()) { <option value="@v" selected="@(m.Metodo == v)">@v.Rotulo()</option> }</select></td>
+  <td><input type="text" inputmode="decimal" name="Medidas[@i].Medicao" data-f="Medicao" class="medida-valor" value="@m.Medicao" aria-label="Medição" readonly="@(!Model.EditaMedicao)"></td>
+  <td><output class="medida-resultado resultado-medida @classe">@resultado</output></td>
+  <td>@if (e) { <button type="button" class="btn-icon remover-linha" aria-label="Remover medida">×</button> }</td>
+</tr>

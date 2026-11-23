@@ -1,3 +1,4 @@
+@model LaudosListaViewModel
 @{
     ViewData["Title"] = "Preventiva";
     ViewData["Tema"] = "t-blue";
@@ -10,50 +11,27 @@
 }
 
 <main>
-                <a class="back" href="~/inicio"><span data-ic="back"></span>Laudos</a>
-                <div class="head"><span class="badge-ic" data-ic="cal"></span>
-                    <div>
-                        <h1>Preventiva</h1>
-                        <p class="sub">Confira os laudos de Preventiva em andamento e gerencie novos registros.</p>
-                    </div><span class="sp"></span><a class="btn pri" id="novo" href="~/laudos/preventiva/novo"><span
-                            data-ic="plus"></span>Novo laudo</a>
-                </div>
-                <p class="banner" id="aviso" role="status" hidden></p>
-                <section class="stats">
-                    <div class="stat"><span data-ic="file"></span>
-                        <div><small>Em andamento</small><b id="sAnd">0</b></div>
-                    </div>
-                    <div class="stat"><span data-ic="clock"></span>
-                        <div><small>Aguardando gestão aprovar</small><b id="sPend">0</b></div>
-                    </div>
-                    <div class="stat"><span data-ic="warn"></span>
-                        <div><small>Refazer laudo</small><b id="sRedo">0</b></div>
-                    </div>
-                    <div class="stat"><span data-ic="target"></span>
-                        <div><small>Aprovados</small><b id="sApr">0</b></div>
-                    </div>
-                    <div class="stat">
-                        <div><small>Fila de laudos</small><b id="sUso">0%</b><small id="sUsoTxt"></small></div>
-                    </div>
-                </section>
-                <div class="head">
-                    <h2>Meus laudos <span class="pill pill--count" id="n">0</span></h2><span class="sp"></span>
-                    <label class="search"><span data-ic="search"></span><input id="q"
-                            placeholder="Buscar por número do dispositivo ou produto…" aria-label="Buscar"></label>
-                </div>
-                <div class="tw">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Número do Dispositivo</th>
-                                <th>Produto</th>
-                                <th>Tipo</th>
-                                <th>Última atualização</th>
-                                <th>Status</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="rows"></tbody>
-                    </table>
-                </div>
-            </main>
+ <a class="back" href="~/inicio"><span data-ic="back"></span>Laudos</a>
+ <div class="head"><span class="badge-ic" data-ic="cal"></span><div><h1>Preventiva</h1><p class="sub">Confira os laudos de Preventiva em andamento e gerencie novos registros.</p></div><span class="sp"></span>@if (Model.PodeCriar) { <a class="btn pri" id="novo" href="~/laudos/preventiva/novo"><span data-ic="plus"></span>Novo laudo</a> }</div>
+ @await Html.PartialAsync("_Alertas")
+ <section class="stats">
+  <div class="stat"><span data-ic="file"></span><div><small>Em andamento</small><b id="sAnd">@Model.EmAndamento</b></div></div>
+  <div class="stat"><span data-ic="clock"></span><div><small>Aguardando gestão aprovar</small><b id="sPend">@Model.AguardandoAprovacao</b></div></div>
+  <div class="stat"><span data-ic="warn"></span><div><small>Refazer laudo</small><b id="sRedo">@Model.Reprovados</b></div></div>
+  <div class="stat"><span data-ic="target"></span><div><small>Aprovados</small><b id="sApr">@Model.Aprovados</b></div></div>
+  <div class="stat"><div><small>Fila de laudos</small><b id="sUso">@(Model.PercentualFila)%</b><small id="sUsoTxt">@(Model.PodeCriar ? Model.Fila + " de " + Model.LimiteFila : "")</small></div></div>
+ </section>
+ <div class="head"><h2>Meus laudos <span class="pill pill--count" id="n">@Model.Laudos.Count</span></h2><span class="sp"></span>
+  <label class="search"><span data-ic="search"></span><input id="q" placeholder="Buscar por número do dispositivo ou produto…" aria-label="Buscar"></label></div>
+ <div class="tw"><table><thead><tr><th>Número do Dispositivo</th><th>Produto</th><th>Tipo</th><th>Última atualização</th><th>Status</th><th>Ações</th></tr></thead><tbody id="rows">
+@foreach (var laudo in Model.Laudos)
+{
+    @await Html.PartialAsync("_LaudoLinhaLista", laudo, new ViewDataDictionary(ViewData) { { "EhOperador", Model.EhOperador } })
+}
+  <tr id="vazio" hidden="@(Model.Laudos.Any())"><td colspan="6" class="empty">Nenhum laudo encontrado.</td></tr>
+ </tbody></table></div>
+</main>
+
+@section Scripts {
+    <script src="~/js/laudos-lista.js" asp-append-version="true"></script>
+}

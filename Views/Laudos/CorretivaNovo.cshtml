@@ -1,39 +1,42 @@
+@model LaudoFormViewModel
 @{
-    ViewData["Title"] = "Novo laudo de corretiva";
+    ViewData["Title"] = Model.Novo ? "Novo laudo de corretiva" : "Laudo de corretiva";
     ViewData["Tema"] = "t-red";
     ViewData["Nav"] = "dispositivos";
+    var edita = Model.PodeEditarEstrutura;
+    var fotos = Model.PodeEditarEstrutura || Model.PodePreencher;
+    var acaoForm = Model.Novo ? Url.Content("~/laudos/corretiva/novo") : Url.Content("~/laudos/" + Model.IdLaudo + "/salvar");
+    var causas = System.Text.Json.JsonSerializer.Serialize(new
+    {
+        metodo = Model.CausasMetodo, maquina = Model.CausasMaquina, material = Model.CausasMaterial,
+        medicao = Model.CausasMedicao, meioAmbiente = Model.CausasMeioAmbiente, maoDeObra = Model.CausasMaoDeObra,
+        causaRaiz = Model.CausaRaiz ?? ""
+    });
 }
 
 @section Styles {
     <link rel="stylesheet" href="~/css/corretiva-novo.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/laudo-medicoes.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/laudo-form.css" asp-append-version="true" />
 }
 
-<main><form id="f" class="page-form" novalidate>
+<main><form id="f" class="page-form" method="post" enctype="multipart/form-data" action="@acaoForm" data-leitura="@(Model.SomenteLeitura ? "true" : "false")" data-estrutura="@(Model.PodeEditarEstrutura ? "true" : "false")" novalidate>
+ @Html.AntiForgeryToken()
  <a class="back" href="~/laudos/corretiva"><span data-ic="back"></span>Voltar</a>
- <div class="head"><span class="badge-ic" data-ic="file"></span><div><h1>Novo laudo de corretiva</h1><p class="sub">Registre a falha, analise a causa raiz utilizando o método Ishikawa e descreva as ações corretivas.</p></div></div>
- <div class="">
+ <div class="head"><span class="badge-ic" data-ic="file"></span><div><h1>@(Model.Novo ? "Novo laudo de corretiva" : "Laudo de corretiva")</h1><p class="sub">Registre a falha, analise a causa raiz utilizando o método Ishikawa e descreva as ações corretivas.</p></div>@if (!Model.Novo) { <span class="sp"></span><span class="pill @Model.Status.ClassePill()">@Model.Status.Rotulo()</span> }</div>
+ @await Html.PartialAsync("_LaudoAvisos", Model)
+ <div class="split">
   <section class="card"><h2><span data-ic="file"></span>Informações gerais</h2><div class="fg">
-   <div class="f"><label for="cod">Número do dispositivo <i>*</i></label><input id="cod" name="codigo" placeholder="Ex.: DMP010100" required></div>
-   <div class="f"><label for="prod">Produto <i>*</i></label><select id="prod" name="produto" required data-produtos><option value="">Selecione o produto</option></select></div>
-   <div class="f"><label for="dt">⦁	Data de início  <i>*</i></label><input id="dt" name="data" type="date" required></div>
-   <div class="f"><label for="os">Ordem de serviço <i>*</i></label><input id="os" name="os" placeholder="Ex.: OS-000123" required></div>
-   <div class="f">
-    <label for="rm">Responsável pela manutenção <i>*</i></label>
-    <input type="text" id="rm" name="resp_manut" placeholder=" Nome do Responsável" disabled>
-</div>
- <div class="f"><label for="tipo">Tipo <i>*</i></label><select id="tipo" name="tipo" required data-tipos><option value="">Selecione o tipo</option></select></div>
+   @await Html.PartialAsync("_LaudoCampos", Model)
   </div></section>
 
  </div>
 
  
  <section class="card sgd-desenho"><h2><span data-ic="file"></span>Desenho técnico</h2>
-  <label class="drop"><span data-ic="up"></span><b>Importar desenho boleado</b><span id="prev">Nenhum desenho importado. O desenho servirá de referência para as medidas.</span><input id="file" type="file" accept="image/*,.pdf" hidden></label></section>
- <section class="card"><div class="head head--flush"><h2>Medidas / especificações</h2><span class="sp"></span><button type="button" id="addM" class="btn sm"><span data-ic="plus"></span>Adicionar medida</button></div>
-  <div class="tw mt"><table class="tbl"><thead><tr><th>Nº</th><th>Descrição</th><th>Especificação</th><th>Mínimo</th><th>Máximo</th><th>Método / instrumento</th><th>Medição</th><th>Resultado</th><th><span class="sr-only">Remover</span></th></tr></thead><tbody id="medidas" data-rows></tbody></table></div></section>
- <section class="card"><div class="head head--flush"><h2>Checklist</h2><span class="sp"></span><button type="button" id="addC" class="btn sm"><span data-ic="plus"></span>Adicionar item</button></div>
-  <div class="tw mt"><table class="tbl"><thead><tr><th>Nº</th><th>Descrição</th><th>Resultado</th><th><span class="sr-only">Remover</span></th></tr></thead><tbody id="check" data-rows></tbody></table></div></section>
+  @await Html.PartialAsync("_LaudoDesenho", Model)</section>
+ @await Html.PartialAsync("_LaudoMedidas", Model)
+ @await Html.PartialAsync("_LaudoChecklist", Model)
  <!-- MODIFICACAO POR CAIO BONONI CASO DER TUDO ERRADO -->
   
 <section class="card sgd-corretiva-ocorrencia-container">
@@ -58,10 +61,11 @@
 
                 <textarea
                     id="descricao_falha"
-                    name="descricao_falha"
+                    name="DescricaoFalha"
                     maxlength="1500"
                     required
-                    placeholder="Descreva detalhadamente o problema identificado no dispositivo..."></textarea>
+                    readonly="@(!edita)"
+                    placeholder="Descreva detalhadamente o problema identificado no dispositivo...">@Model.DescricaoFalha</textarea>
             </div>
 
             <div class="sgd-corretiva-ocorrencia-controle-voz">
@@ -113,12 +117,16 @@
                     <strong>Enviar imagem</strong>
                     <small>Selecionar uma foto existente</small>
 
+                    @if (fotos)
+                    {
                     <input
                         type="file"
                         id="uploadOcorrencia"
+                        name="FotosOcorrencia"
                         accept="image/*"
                         multiple
                         hidden>
+                    }
                 </label>
 
             </div>
@@ -126,6 +134,10 @@
             <div
                 id="previewOcorrencia"
                 class="sgd-corretiva-ocorrencia-visualizacao">
+                @foreach (var foto in Model.FotosOcorrenciaAtuais)
+                {
+                    <img src="@Url.Content("~/laudos/anexos/" + foto.IdAnexo + "/download")" alt="@foto.NomeOriginal" title="@foto.NomeOriginal" class="foto-salva">
+                }
             </div>
 
         </div>
@@ -149,7 +161,10 @@
                 <input
                     type="text"
                     id="componente_afetado"
-                    name="componente_afetado"
+                    name="ComponenteAfetado"
+                    value="@Model.ComponenteAfetado"
+                    maxlength="150"
+                    readonly="@(!edita)"
                     placeholder="Componente identificado pela análise">
             </div>
 
@@ -158,15 +173,12 @@
                     Tipo de falha
                 </label>
 
-                <select id="tipo_falha" name="tipo_falha">
+                <select id="tipo_falha" name="TipoFalha" disabled="@(!edita)">
                     <option value="">Selecione o tipo de falha</option>
-                    <option>Desgaste</option>
-                    <option>Quebra</option>
-                    <option>Trinca</option>
-                    <option>Folga</option>
-                    <option>Dano operacional</option>
-                    <option>Não conformidade dimensional</option>
-                    <option>Outro</option>
+                    @foreach (var tf in Enum.GetValues<TipoFalha>())
+                    {
+                        <option value="@tf" selected="@(Model.TipoFalha == tf)">@tf.Rotulo()</option>
+                    }
                 </select>
             </div>
 
@@ -177,9 +189,10 @@
 
                 <textarea
                     id="causas_sugeridas"
-                    name="causas_sugeridas"
+                    name="CausasSugeridas"
                     maxlength="1500"
-                    placeholder="Possíveis causas sugeridas pela IA..."></textarea>
+                    readonly="@(!edita)"
+                    placeholder="Possíveis causas sugeridas pela IA...">@Model.CausasSugeridas</textarea>
             </div>
 
         </div>
@@ -203,7 +216,7 @@
     <span class="sgd-ishikawa__badge">Método 6M</span>
    </div>
    <div class="sgd-ishikawa__scroll">
-    <div class="fish" id="fish"></div>
+    <div class="fish" id="fish" data-causas="@causas" data-edita="@(edita ? "true" : "false")"></div>
    </div>
    <div class="sgd-ishikawa__footer">
     <span class="sgd-ishikawa__legend-dot"></span>
@@ -215,7 +228,17 @@
    <textarea id="relato" name="relato" hidden placeholder="Descreva o que aconteceu…" aria-label="Relato"></textarea>
    <div class="card ia__summary"><b>Resumo sugerido pela IA</b><p class="sub" id="resumo">Após a análise do relato, a IA irá sugerir possíveis causas raiz com base no histórico e nas boas práticas da ferramentaria.</p></div></div></section>
  </div>
- <section class="card"><div class="head head--flush"><h2><span data-ic="wrench"></span>Plano de Ação Corretiva</h2><span class="sp"></span><button type="button" id="addA" class="btn sm"><span data-ic="plus"></span>Adicionar ação</button></div><div id="acts" class="actions-list" data-rows></div></section>
+ <section class="card"><div class="head head--flush"><h2><span data-ic="wrench"></span>Plano de Ação Corretiva</h2><span class="sp"></span>@if (edita) { <button type="button" id="addA" class="btn sm"><span data-ic="plus"></span>Adicionar ação</button> }</div><div id="acts" class="actions-list" data-rows>
+  @for (var i = 0; i < Model.Acoes.Count; i++)
+  {
+      @await Html.PartialAsync("_LaudoLinhaAcao", new LinhaAcaoModel { Indice = i.ToString(), Item = Model.Acoes[i], Edita = edita })
+  }
+ </div>
+ @if (edita)
+ {
+     <template id="tplAcao">@await Html.PartialAsync("_LaudoLinhaAcao", new LinhaAcaoModel { Indice = "__I__", Item = new AcaoForm(), Edita = true })</template>
+ }
+ </section>
 
  <!-- MODIFICACAO POR CAIO BONONI CASO DER TUDO ERRADO -->
  <!-- FOTO DO TRABALHO REALIZADO -->
@@ -248,6 +271,8 @@
             </label>-->
 
             <!-- UPLOAD -->
+            @if (fotos)
+            {
             <label
                 class="sgd-corretiva-ocorrencia-area-upload"
                 for="uploadTrabalho">
@@ -259,10 +284,12 @@
                 <input
                     type="file"
                     id="uploadTrabalho"
+                    name="FotosTrabalho"
                     accept="image/*"
                     multiple
                     hidden>
             </label>
+            }
 
         </div>
 
@@ -270,6 +297,10 @@
         <div
             id="previewTrabalho"
             class="sgd-corretiva-ocorrencia-visualizacao">
+            @foreach (var foto in Model.FotosTrabalhoAtuais)
+            {
+                <img src="@Url.Content("~/laudos/anexos/" + foto.IdAnexo + "/download")" alt="@foto.NomeOriginal" title="@foto.NomeOriginal" class="foto-salva">
+            }
         </div>
 
     </div>
@@ -283,6 +314,10 @@
 
  <!-- DESENHO TÉCNICO / MEDIDAS / CHECKLIST (mesmas seções do laudo de liberação) -->
 
- <section class="card"><div class="f"><label for="obs">Outras informações</label><textarea id="obs" name="obs" placeholder="Observações, anexos ou registros adicionais"></textarea></div></section>
- <div class="actions"><a class="btn" href="~/laudos/corretiva"><span data-ic="x"></span>Cancelar</a><button class="btn" type="submit"><span data-ic="save"></span>Salvar laudo</button><button class="btn pri" type="button" id="concluir"><span data-ic="file"></span>Concluir e enviar</button></div>
+ <section class="card"><div class="f"><label for="obs">Outras informações</label><textarea id="obs" name="OutrasInformacoes" maxlength="1500" readonly="@(!edita)" placeholder="Observações, anexos ou registros adicionais">@Model.OutrasInformacoes</textarea></div></section>
+ @await Html.PartialAsync("_LaudoRodape", Model)
 </form></main>
+
+@section Scripts {
+    <script src="~/js/laudo-form.js" asp-append-version="true"></script>
+}

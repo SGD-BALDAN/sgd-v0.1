@@ -3,7 +3,7 @@
     ViewData["Title"] = "Dispositivo " + Model.Codigo;
     ViewData["Tema"] = "t-red";
     ViewData["Nav"] = "dispositivos";
-    var podeCriar = (User.IsInRole(Papeis.Projetista) || User.IsInRole(Papeis.Operacional) || User.IsInRole(Papeis.Programador))
+    var podeCriar = (User.IsInRole(Papeis.Projetista) || User.IsInRole(Papeis.Operacional))
                     && Model.Status != StatusDispositivo.Inativo;
     var pt = new System.Globalization.CultureInfo("pt-BR");
 }

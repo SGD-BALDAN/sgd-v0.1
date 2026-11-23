@@ -1,0 +1,12 @@
+@model LinhaChecklistModel
+@{
+    var c = Model.Item;
+    var i = Model.Indice;
+    var e = Model.EditaEstrutura;
+}
+<tr>
+  <td><input type="hidden" name="Checklist[@i].IdChecklist" data-f="IdChecklist" value="@c.IdChecklist"><input type="number" name="Checklist[@i].Numero" data-f="Numero" value="@(c.Numero == 0 ? "" : c.Numero.ToString())" min="1" aria-label="Número" readonly="@(!e)"></td>
+  <td><input name="Checklist[@i].Descricao" data-f="Descricao" value="@c.Descricao" placeholder="Descreva o item a verificar" maxlength="255" aria-label="Descrição do item" readonly="@(!e)"></td>
+  <td><select name="Checklist[@i].Resultado" data-f="Resultado" aria-label="Resultado" disabled="@(!Model.EditaResultado)">@foreach (var v in Enum.GetValues<ResultadoChecklist>()) { <option value="@v" selected="@(c.Resultado == v)">@v.Rotulo()</option> }</select></td>
+  <td>@if (e) { <button type="button" class="btn-icon remover-linha" aria-label="Remover item">×</button> }</td>
+</tr>

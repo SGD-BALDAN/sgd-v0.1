@@ -1,0 +1,7 @@
+@model LaudoFormViewModel
+@{
+    var texto = ViewData["TextoVazio"] as string ?? "Nenhum desenho importado. O desenho servirá de referência para as medidas.";
+    var atual = Model.DesenhoAtual;
+    var url = atual == null ? "" : Url.Content("~/laudos/anexos/" + atual.IdAnexo + "/download");
+}
+<label class="drop"><span data-ic="up"></span><b>Importar desenho boleado</b><span id="prev" data-vazio="@texto">@if (atual == null) { <text>@texto</text> } else if (atual.TipoMime.StartsWith("image/")) { <img src="@url" alt="@atual.NomeOriginal" title="@atual.NomeOriginal"> } else { <a href="@url" target="_blank" rel="noopener">@atual.NomeOriginal</a> }</span>@if (Model.PodeEditarEstrutura) { <input id="file" type="file" name="Desenho" accept="image/*,.pdf" hidden> }</label>

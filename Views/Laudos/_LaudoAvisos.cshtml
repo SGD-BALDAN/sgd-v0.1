@@ -1,0 +1,25 @@
+@model LaudoFormViewModel
+@await Html.PartialAsync("_Alertas")
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alerta alerta--erro" role="alert">
+        <ul>
+            @foreach (var erro in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <li>@(string.IsNullOrWhiteSpace(erro.ErrorMessage) ? "Há um valor inválido no formulário." : erro.ErrorMessage)</li>
+            }
+        </ul>
+    </div>
+}
+@if (Model.Status == StatusLaudo.Reprovado)
+{
+    <p class="banner" role="status"><b>Laudo reprovado — refazer.</b> Motivo: @(string.IsNullOrWhiteSpace(Model.MotivoReprovacao) ? "não informado" : Model.MotivoReprovacao)</p>
+}
+@if (Model.PodeAssumir)
+{
+    <p class="banner" role="status">Este laudo está na fila dos operadores. Assuma o laudo para preencher as medições e o checklist.</p>
+}
+else if (Model.SomenteLeitura && !Model.Novo && Model.Status != StatusLaudo.Reprovado)
+{
+    <p class="banner" role="status">Laudo em modo de consulta: você não pode alterar as informações nesta etapa.</p>
+}

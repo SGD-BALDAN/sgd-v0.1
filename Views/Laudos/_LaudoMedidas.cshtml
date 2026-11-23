@@ -1,0 +1,17 @@
+@model LaudoFormViewModel
+@{
+    var edita = Model.PodeEditarEstrutura;
+    var mede = Model.PodePreencher;
+}
+<section class="card"><div class="head head--flush"><h2>Medidas / especificações</h2><span class="sp"></span>@if (edita) { <button type="button" id="addM" class="btn sm"><span data-ic="plus"></span>Adicionar medida</button> }</div>
+   <div class="tw mt"><table class="tbl"><thead><tr><th>Nº</th><th>Descrição</th><th>Especificação</th><th>Mínimo</th><th>Máximo</th><th>Método / instrumento</th><th>Medição</th><th>Resultado</th><th><span class="sr-only">Remover</span></th></tr></thead><tbody id="medidas" data-rows>
+@for (var i = 0; i < Model.Medidas.Count; i++)
+{
+    @await Html.PartialAsync("_LaudoLinhaMedida", new LinhaMedidaModel { Indice = i.ToString(), Item = Model.Medidas[i], EditaEstrutura = edita, EditaMedicao = mede })
+}
+</tbody></table></div>
+@if (edita)
+{
+    <template id="tplMedida">@await Html.PartialAsync("_LaudoLinhaMedida", new LinhaMedidaModel { Indice = "__I__", Item = new MedidaForm(), EditaEstrutura = true, EditaMedicao = mede })</template>
+}
+</section>

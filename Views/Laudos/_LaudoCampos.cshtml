@@ -1,0 +1,36 @@
+@model LaudoFormViewModel
+@using SgdBaldan.Models
+@{
+    var travado = Model.DispositivoTravado;      // laudo já criado: o dispositivo não muda
+    var edita = Model.PodeEditarEstrutura;
+}
+   <div class="f"><label for="cod">Número do Dispositivo <i>*</i></label><input id="cod" name="Codigo" value="@Model.Codigo" placeholder="Ex.: DMP010100" list="dispositivos-existentes" autocomplete="off" maxlength="50" required readonly="@travado">
+    @if (!travado)
+    {
+        <datalist id="dispositivos-existentes">@foreach (var d in Model.Dispositivos) { <option value="@d.Codigo" data-produto="@d.IdProduto" data-categoria="@d.IdCategoria">@d.Produto.Nome</option> }</datalist>
+    }
+   </div>
+   <div class="f"><label for="prod">Produto <i>*</i></label><select id="prod" name="IdProduto" required disabled="@travado" data-produtos>
+    @if (travado) { <option value="@Model.IdProduto" selected>@Model.NomeProduto</option> }
+    else
+    {
+        <option value="">Selecione o produto</option>
+        foreach (var produto in Model.Produtos) { <option value="@produto.IdProduto" selected="@(Model.IdProduto == produto.IdProduto)">@produto.Nome</option> }
+    }
+   </select></div>
+   <div class="f"><label for="categoria">Categoria <i>*</i></label><select id="categoria" name="IdCategoria" required disabled="@travado" data-categorias>
+    @if (travado) { <option value="@Model.IdCategoria" selected>@Model.NomeCategoria</option> }
+    else
+    {
+        <option value="">Selecione a categoria</option>
+        foreach (var categoria in Model.Categorias) { <option value="@categoria.IdCategoria" selected="@(Model.IdCategoria == categoria.IdCategoria)">@categoria.Nome</option> }
+    }
+   </select></div>
+   <div class="f"><label for="dt">⦁ Data de início  <i>*</i></label><input id="dt" name="DataInicio" type="date" value="@Model.DataInicio.ToString("yyyy-MM-dd")" required readonly="@(!edita)"></div>
+   <div class="f"><label for="os">Ordem de serviço <i>*</i></label><input id="os" name="OrdemServico" value="@Model.OrdemServico" placeholder="Ex.: OS-000123" maxlength="30" required readonly="@(!edita)"></div>
+   <div class="f">
+    <label for="rm">Responsável pela manutenção <i>*</i></label>
+    <input type="text" id="rm" name="resp_manut" value="@Model.NomeResponsavel" readonly>
+   </div>
+   <div class="f"><label for="conferente">Conferente</label><input type="text" id="conferente" name="conferente" value="@Model.NomeConferente" placeholder="@(string.IsNullOrEmpty(Model.NomeConferente) ? "Definido pelo operador que assumir" : "")" readonly></div>
+   <div class="f"><label for="tipo">Tipo <i>*</i></label><select id="tipo" name="tipo" required data-tipos><option value="@Model.Tipo">@(Model.Tipo == TipoLaudo.Liberacao ? "Liberação" : Model.Tipo.ToString())</option></select></div>

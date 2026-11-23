@@ -1,0 +1,13 @@
+@model LinhaAcaoModel
+@{
+    var a = Model.Item;
+    var i = Model.Indice;
+}
+<div class="action card">
+  <input type="hidden" name="Acoes[@i].Numero" data-f="Numero" value="@a.Numero">
+  <div class="fg">
+    <div class="f"><label>O que será feito?</label><input name="Acoes[@i].Oque" data-f="Oque" value="@a.Oque" maxlength="1000" placeholder="Descreva a ação" readonly="@(!Model.Edita)"></div>
+    <div class="f"><label>Como será feito?</label><input name="Acoes[@i].Como" data-f="Como" value="@a.Como" maxlength="1000" placeholder="Descreva como executar" readonly="@(!Model.Edita)"></div>
+  </div>
+  @if (Model.Edita) { <button type="button" class="btn-icon remover-linha" aria-label="Remover ação">×</button> }
+</div>

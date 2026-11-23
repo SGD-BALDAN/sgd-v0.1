@@ -1,0 +1,55 @@
+@model LaudoFormViewModel
+@using SgdBaldan.Services
+@{
+    var slug = Model.Tipo.Slug();
+    var voltar = Url.Content("~/laudos/" + slug);
+    string Rota(string acao) => Url.Content("~/laudos/" + Model.IdLaudo + "/" + acao);
+}
+@if (Model.PodeDecidir || Model.PodeRegistrarCustos)
+{
+    <section class="card"><h2><span data-ic="file"></span>Decisão da gestão</h2>
+     <div class="fg">
+      <div class="f"><label for="custoMaterial">Custo de material (R$)</label><input id="custoMaterial" name="custoMaterial" inputmode="decimal" value="@LaudoFluxo.Formatar(Model.CustoMaterial)" placeholder="0,00"></div>
+      <div class="f"><label for="custoMaoObra">Custo de mão de obra (R$)</label><input id="custoMaoObra" name="custoMaoObra" inputmode="decimal" value="@LaudoFluxo.Formatar(Model.CustoMaoObra)" placeholder="0,00"></div>
+      @if (Model.PodeDecidir)
+      {
+          <div class="f"><label for="motivo">Motivo (obrigatório para reprovar)</label><input id="motivo" name="motivo" maxlength="500" placeholder="Explique o que precisa ser refeito"></div>
+      }
+     </div>
+     <div class="actions mt">
+      <button class="btn" type="submit" formaction="@Rota("custos")" formnovalidate><span data-ic="save"></span>Salvar custos</button>
+      @if (Model.PodeDecidir)
+      {
+          <button class="btn" type="submit" formaction="@Rota("reprovar")" formnovalidate data-exige="motivo"><span data-ic="x"></span>Reprovar</button>
+          <button class="btn pri" type="submit" formaction="@Rota("aprovar")" formnovalidate data-confirmar="Aprovar este laudo?"><span data-ic="file"></span>Aprovar</button>
+      }
+     </div>
+    </section>
+}
+<div class="actions">
+ <a class="btn" href="@voltar"><span data-ic="@(Model.SomenteLeitura && !Model.Novo ? "back" : "x")"></span>@(Model.SomenteLeitura && !Model.Novo ? "Voltar" : "Cancelar")</a>
+ @if (Model.PodeExcluir)
+ {
+     <button class="btn" type="submit" formaction="@Rota("excluir")" formnovalidate data-confirmar="Excluir este laudo? Esta ação não pode ser desfeita."><span data-ic="trash"></span>Excluir</button>
+ }
+ @if (Model.PodeReaproveitar)
+ {
+     <button class="btn" type="submit" formaction="@Rota("reaproveitar")" formnovalidate data-confirmar="Criar um novo laudo reaproveitando a estrutura deste?"><span data-ic="plus"></span>Reaproveitar estrutura</button>
+ }
+ @if (Model.PodeAssumir)
+ {
+     <button class="btn pri" type="submit" formaction="@Rota("assumir")" formnovalidate><span data-ic="file"></span>Assumir laudo</button>
+ }
+ @if (Model.PodeSalvar && Model.Status != StatusLaudo.Reprovado)
+ {
+     <button class="btn" type="submit" name="Acao" value="salvar"><span data-ic="save"></span>Salvar laudo</button>
+ }
+ @if (Model.PodeReabrir)
+ {
+     <button class="btn pri" type="submit" formaction="@Rota("reabrir")" formnovalidate><span data-ic="file"></span>Reabrir para correção</button>
+ }
+ @if (Model.PodeEnviar)
+ {
+     <button class="btn pri" type="submit" name="Acao" value="enviar" id="concluir"><span data-ic="file"></span>Concluir e enviar</button>
+ }
+</div>

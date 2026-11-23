@@ -1,0 +1,28 @@
+
+.laudo-editor{max-width:1440px;margin:0 auto;padding:1.5rem 2rem 3rem}
+.laudo-editor .head{display:flex;align-items:center;gap:1rem;margin:1rem 0 1.5rem}
+.laudo-editor .head h1{margin:0}.laudo-id{font-size:.72em;color:var(--muted);font-weight:600}
+.laudo-editor .head .sub{margin:.35rem 0 0}
+.laudo-editor .card{margin:0 0 1.1rem;padding:1.35rem}
+.laudo-editor .card h2{margin:0 0 1rem}
+.laudo-editor .laudo-resumo{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem}
+.laudo-resumo div{display:flex;flex-direction:column;gap:.3rem}.laudo-resumo small,.hint{color:var(--muted)}
+.status-pill{display:inline-flex;align-items:center;padding:.4rem .8rem;border-radius:999px;background:var(--field);font-size:.82rem;font-weight:700}
+.laudo-editor .table-input{width:100%;min-width:110px;padding:.65rem .7rem;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--text);font:inherit}
+.laudo-editor .numero{min-width:64px;max-width:76px}
+.laudo-editor .hint{display:block;margin:.8rem 0 0;font-size:.86rem}
+.laudo-editor .actions{display:flex;gap:.7rem;justify-content:flex-end;flex-wrap:wrap;margin:1rem 0}
+.laudo-editor .ishikawa-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}
+.laudo-editor .ishikawa-grid textarea,.laudo-editor .f textarea{min-height:90px}
+.laudo-editor .acoes-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
+.acao-row{border:1px solid var(--line);border-radius:12px;padding:1rem;display:grid;gap:.7rem}
+.acao-row>label{font-weight:700}.acao-row textarea{min-height:75px}
+.operator-measure,.operator-check{display:grid;grid-template-columns:minmax(0,1fr) minmax(150px,240px);gap:1rem;align-items:center;padding:.8rem 0;border-bottom:1px solid var(--line)}
+.operator-measure small{display:block;color:var(--muted);margin-top:.25rem}
+.operator-measure input,.operator-check select,.reprovar-form input{width:100%;padding:.7rem;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--text)}
+.attachment-list{display:grid;gap:.5rem}.attachment-list>div{display:flex;justify-content:space-between;gap:1rem;padding:.7rem 0;border-bottom:1px solid var(--line)}
+.attachment-list small{color:var(--muted)}.attachment-form{display:grid;grid-template-columns:1fr 1fr auto;gap:1rem;align-items:end;margin-top:1rem}
+.history-list{padding-left:1.25rem}.history-list li{padding:.4rem 0}.history-list span{display:block;color:var(--muted);font-size:.85rem}
+.validation-summary{color:#c33;margin:.8rem 0}
+@media(max-width:900px){.laudo-editor{padding:1rem}.laudo-editor .laudo-resumo{grid-template-columns:repeat(2,minmax(0,1fr))}.laudo-editor .ishikawa-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.laudo-editor .head{align-items:flex-start;flex-wrap:wrap}.laudo-editor .laudo-resumo,.laudo-editor .ishikawa-grid,.laudo-editor .acoes-grid,.attachment-form{grid-template-columns:1fr}.operator-measure,.operator-check{grid-template-columns:1fr}.attachment-list>div{flex-direction:column}}

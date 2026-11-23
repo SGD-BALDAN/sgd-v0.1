@@ -1,0 +1,17 @@
+@model LaudoFormViewModel
+@{
+    var edita = Model.PodeEditarEstrutura;
+    var responde = Model.PodePreencher;
+}
+<section class="card"><div class="head head--flush"><h2>Checklist</h2><span class="sp"></span>@if (edita) { <button type="button" id="addC" class="btn sm"><span data-ic="plus"></span>Adicionar item</button> }</div>
+  <div class="tw mt"><table class="tbl"><thead><tr><th>Nº</th><th>Descrição</th><th>Resultado</th><th><span class="sr-only">Remover</span></th></tr></thead><tbody id="check" data-rows>
+@for (var i = 0; i < Model.Checklist.Count; i++)
+{
+    @await Html.PartialAsync("_LaudoLinhaChecklist", new LinhaChecklistModel { Indice = i.ToString(), Item = Model.Checklist[i], EditaEstrutura = edita, EditaResultado = responde })
+}
+</tbody></table></div>
+@if (edita)
+{
+    <template id="tplChecklist">@await Html.PartialAsync("_LaudoLinhaChecklist", new LinhaChecklistModel { Indice = "__I__", Item = new ChecklistForm(), EditaEstrutura = true, EditaResultado = responde })</template>
+}
+</section>

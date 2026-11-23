@@ -10,8 +10,8 @@ public class CadastroViewModel
     public string Nome { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Informe seu RE.")]
-    [StringLength(30)]
-    [RegularExpression(@"^[A-Za-z0-9._-]+$", ErrorMessage = "O RE deve ter apenas letras, números, ponto, hífen ou sublinhado.")]
+    [StringLength(5, MinimumLength = 5, ErrorMessage = "O RE deve ter exatamente 5 dígitos.")]
+    [RegularExpression(@"^[0-9]{5}$", ErrorMessage = "O RE deve ter exatamente 5 dígitos numéricos.")]
     public string Re { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Informe uma senha.")]

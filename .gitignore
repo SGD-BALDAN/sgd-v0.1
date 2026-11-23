@@ -361,3 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Anexos dos laudos gravados em disco (nunca versionar)
+App_Data/

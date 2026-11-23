@@ -15,7 +15,17 @@ public static class DbInicializador
         try
         {
             if (config.GetValue<bool>("Database:AplicarMigrations"))
+            {
                 await db.Database.MigrateAsync();
+            }
+            else if ((await db.Database.GetPendingMigrationsAsync()).Any())
+            {
+                // Sem aplicação automática: recusa subir com o banco desatualizado, com instrução clara.
+                throw new InvalidOperationException(
+                    "Há migrations pendentes e Database:AplicarMigrations está desligado. " +
+                    "Aplique-as com 'dotnet ef database update' ou execute o script SQL gerado por " +
+                    "'dotnet ef migrations script --idempotent'. Detalhes em Data/Migrations/LEIA-ME.md.");
+            }
 
             await SemearCatalogoAsync(db);
             await SemearProgramadorAsync(db, config, logger);
@@ -64,10 +74,17 @@ public static class DbInicializador
             return;
         }
 
+        re = re.Trim();
+        if (!System.Text.RegularExpressions.Regex.IsMatch(re, @"^[0-9]{5}$"))
+        {
+            logger.LogError("Seed:Programador:Re inválido: o RE deve ter exatamente 5 dígitos numéricos. Programador inicial não criado.");
+            return;
+        }
+
         var usuario = new Usuario
         {
             Nome = nome.Trim(),
-            Re = re.Trim(),
+            Re = re,
             Perfil = PerfilUsuario.Programador,
             Status = StatusUsuario.Ativo
         };

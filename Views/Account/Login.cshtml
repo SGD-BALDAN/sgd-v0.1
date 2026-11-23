@@ -44,7 +44,7 @@
               <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.2 3.6-7 8-7s8 2.8 8 7"/></svg>
               <span class="sr-only">RE</span>
             </label>
-            <input id="usuario" name="Re" type="text" value="@Model.Re" maxlength="30" placeholder="RE" autocomplete="username" required>
+            <input id="usuario" name="Re" type="text" inputmode="numeric" pattern="[0-9]{5}" value="@Model.Re" maxlength="5" placeholder="RE" autocomplete="username" required>
           </div>
 
           <div class="field">
